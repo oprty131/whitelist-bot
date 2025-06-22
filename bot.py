@@ -73,7 +73,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
         username = user_data["name"]
         avatar_url = f"https://www.roblox.com/headshot-thumbnail/image?userId={userid}&width=420&height=420&format=png"
 
-        response = requests.get("https://peeky.pythonanywhere.com/UserIdTestTable")
+        response = requests.get("https://peeky.pythonanywhere.com/Premium")
         table_code = response.text.strip()
         ids = [int(i.strip()) for i in table_code[table_code.find("{")+1:table_code.find("}")].split(",") if i.strip().isdigit()]
 
@@ -85,7 +85,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
 
         ids.append(userid)
         updated_table = "return {\n    " + ",\n    ".join(map(str, ids)) + "\n}"
-        post_response = requests.post("https://peeky.pythonanywhere.com/edit/UserIdTestTable", headers={"Content-Type": "application/x-www-form-urlencoded"}, data={"content": updated_table})
+        post_response = requests.post("https://peeky.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded"}, data={"content": updated_table})
 
         if post_response.status_code == 200:
             mapping[discord_id] = userid
@@ -117,7 +117,7 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
         username = user_data["name"]
         avatar_url = f"https://www.roblox.com/headshot-thumbnail/image?userId={new_userid}&width=420&height=420&format=png"
 
-        response = requests.get("https://peeky.pythonanywhere.com/UserIdTestTable")
+        response = requests.get("https://peeky.pythonanywhere.com/Premium")
         table_code = response.text.strip()
         ids = [int(i.strip()) for i in table_code[table_code.find("{")+1:table_code.find("}")].split(",") if i.strip().isdigit()]
 
@@ -132,7 +132,7 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
             ids.pop(index)
 
         updated_table = "return {\n    " + ",\n    ".join(map(str, ids)) + "\n}"
-        post_response = requests.post("https://peeky.pythonanywhere.com/edit/UserIdTestTable", headers={"Content-Type": "application/x-www-form-urlencoded"}, data={"content": updated_table})
+        post_response = requests.post("https://peeky.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded"}, data={"content": updated_table})
 
         if post_response.status_code == 200:
             mapping[discord_id] = new_userid
