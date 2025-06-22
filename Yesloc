@@ -11,7 +11,7 @@ local originalSettings = {
 }
 
 for key, value in pairs(originalSettings) do
-    if getgenv().Settings[key] == nil or (key == "discord server" and getgenv().Settings[key] ~= value) then
+    if getgenv().Config[key] == nil and getgenv().Config[key] ~= value) then
         game.Players.LocalPlayer:Kick("Don't edit the script or it won't work!")
     end
 end
@@ -96,7 +96,7 @@ tool.Activated:Connect(function()
     end
 end)
 
-if getgenv().Settings["lock remote"] then
+if getgenv().Config["lock remote"] then
     local oldNamecall = getrawmetatable(game).__namecall
     setreadonly(getrawmetatable(game), false)
 
@@ -115,7 +115,7 @@ end
 
 game:GetService("RunService").RenderStepped:Connect(function()
     if locked and targetEnemy and targetEnemy.Character and targetEnemy.Character:FindFirstChild("HumanoidRootPart") then
-        if getgenv().Settings["camlock"] then
+        if getgenv().Config["camlock"] then
             workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetEnemy.Character.HumanoidRootPart.Position + targetEnemy.Character.HumanoidRootPart.Velocity * getgenv().Settings["prediction"])
         end
     end
