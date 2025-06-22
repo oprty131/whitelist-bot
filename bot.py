@@ -62,7 +62,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
         discord_id = str(interaction.user.id)
         mapping = load_mapping()
         if discord_id in mapping:
-            await interaction.response.send_message("❌ You already whitelisted a Roblox user. Use `/replacewhitelist`.", ephemeral=True)
+            await interaction.response.send_message("❌ You already have a whitelisted account. Use `/replace`.", ephemeral=True)
             return
 
         user_info = requests.get(f"https://users.roblox.com/v1/users/{userid}")
