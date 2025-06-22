@@ -1,0 +1,169 @@
+getgenv().Settings = {
+    ["discord server"] = "https://discord.gg/48Sf5gTabQ",
+    ["camlock"] = true,
+    ["lock remote"] = false,
+    ["auto prediction"] = true,
+    ["prediction"] = 0.145 --> leave this if auto predicition is on.
+}
+
+local originalSettings = {
+    ["discord server"] = "https://discord.gg/48Sf5gTabQ",
+    ["camlock"] = true,
+    ["lock remote"] = false,
+    ["auto prediction"] = true,
+    ["prediction"] = 6.0
+}
+
+for key, value in pairs(originalSettings) do
+    if getgenv().Settings[key] == nil or (key == "discord server" and getgenv().Settings[key] ~= value) then
+        game.Players.LocalPlayer:Kick("Don't edit the script or it won't work!")
+    end
+end
+
+if game.Players.LocalPlayer.Backpack:FindFirstChild("Lock") then
+    game.Players.LocalPlayer.Backpack.Lock:Destroy()
+end
+
+local tool = Instance.new("Tool")
+tool.RequiresHandle = false
+tool.Name = "Lock"
+
+local aiming = false
+local locked = false
+local targetEnemy = nil
+local hitboxImage = nil
+
+local mouse = game.Players.LocalPlayer:GetMouse()
+
+local function mouse1()
+    local nearestDistance = math.huge
+    local clickedPosition = mouse.Hit.p
+    targetEnemy = nil
+
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (clickedPosition - player.Character.HumanoidRootPart.Position).magnitude
+            if distance < nearestDistance and distance <= 40 then
+                nearestDistance, targetEnemy = distance, player
+            end
+        end
+    end
+    return targetEnemy
+end
+
+local function Hitbox(player)
+    if hitboxImage then
+        hitboxImage:Destroy()
+        hitboxImage = nil
+    end
+    hitboxImage = Instance.new("BillboardGui")
+    hitboxImage.Adornee = player.Character:FindFirstChild("HumanoidRootPart")
+    hitboxImage.Size = UDim2.new(5, 0, 5, 0)
+    hitboxImage.StudsOffset = Vector3.new(0, 3, 0)
+    hitboxImage.AlwaysOnTop = true
+
+    local imageLabel = Instance.new("ImageLabel")
+    imageLabel.Size = UDim2.new(1, 0, 1, 0)
+    imageLabel.Image = "rbxassetid://99063540717780"
+    imageLabel.BackgroundTransparency = 1
+    imageLabel.Parent = hitboxImage
+    hitboxImage.Parent = player.Character:FindFirstChild("HumanoidRootPart")
+end
+
+local function removeHitbox()
+    if hitboxImage then
+        hitboxImage:Destroy()
+        hitboxImage = nil
+    end
+end
+
+if getgenv().Settings["auto prediction"] then
+    task.spawn(function()
+        while task.wait() do
+            local pingvalue = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString()
+            local split = string.split(pingvalue, '(')
+            local ping = tonumber(split[1])
+            if ping < 30 then
+                getgenv().Settings["prediction"] = 7.758
+            elseif ping < 40 then
+                getgenv().Settings["prediction"] = 7.364
+            elseif ping < 50 then
+                getgenv().Settings["prediction"] = 7.456 
+            elseif ping < 60 then
+                getgenv().Settings["prediction"] = 7.217
+            elseif ping < 70 then
+                getgenv().Settings["prediction"] = 6.972 
+            elseif ping < 80 then
+                getgenv().Settings["prediction"] = 6.782
+            elseif ping < 90 then
+                getgenv().Settings["prediction"] = 6.597 
+            elseif ping < 100 then
+                getgenv().Settings["prediction"] = 3.88
+            elseif ping < 110 then
+                getgenv().Settings["prediction"] = 6.099
+            end
+        end
+    end)
+end
+
+tool.Activated:Connect(function()
+    if not locked then
+        targetEnemy = mouse1()
+        if targetEnemy then
+            locked = true
+            Hitbox(targetEnemy)
+            game.StarterGui:SetCore("SendNotification", {
+                Title = "mechgodzila",
+                Text = "Locked on " .. targetEnemy.DisplayName,
+                Duration = 2
+            })
+        end
+    else
+        locked = false
+        removeHitbox()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "mechgodzila",
+            Text = "Unlocked from target",
+            Duration = 2
+        })
+    end
+end)
+
+if getgenv().Settings["lock remote"] then
+    local oldNamecall = getrawmetatable(game).__namecall
+    setreadonly(getrawmetatable(game), false)
+
+    local old
+    old = hookmetamethod(game, "__namecall", newcclosure(function(...)
+        local method, args = getnamecallmethod(), {...}
+        if method == "FireServer" and args[2] == "MOUSE" then
+            if locked and targetEnemy and targetEnemy.Character then
+                args[3] = targetEnemy.Character.HumanoidRootPart.Position + (targetEnemy.Character.Humanoid.MoveDirection * targetEnemy.Character.Humanoid.WalkSpeed * getgenv().Settings["prediction"]) + (targetEnemy.Character.HumanoidRootPart.Velocity * getgenv().Settings["prediction"])
+                return old(unpack(args))
+            end
+        end
+        return old(...)
+    end))
+end
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    if locked and targetEnemy and targetEnemy.Character and targetEnemy.Character:FindFirstChild("HumanoidRootPart") then
+        if getgenv().Settings["camlock"] then
+            workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, targetEnemy.Character.HumanoidRootPart.Position + targetEnemy.Character.HumanoidRootPart.Velocity * getgenv().Settings["prediction"])
+        end
+    end
+end)
+
+local function onCharacterAdded(character)
+    tool.Parent = game.Players.LocalPlayer.Backpack
+end
+
+game.Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+tool.Parent = game.Players.LocalPlayer.Backpack
+
+game.StarterGui:SetCore("SendNotification", {
+    Title = "loaded",
+    Text = "apex lock tool has loaded!",
+    Duration = 4
+})
