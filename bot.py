@@ -31,7 +31,6 @@ def save_mapping(data):
     with open(MAPPING_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# === Discord Setup ===
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -99,7 +98,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
-@bot.tree.command(name="replacewhitelist", description="Replace your whitelisted UserId with a new one")
+@bot.tree.command(name="replace", description="Replace your whitelisted UserId with a new one")
 @app_commands.describe(new_userid="New UserId")
 async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
     try:
@@ -170,7 +169,6 @@ async def check(interaction: discord.Interaction):
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
-# === Start Flask + Bot ===
 token = os.getenv("TOKEN")
 if not token:
     raise ValueError("TOKEN not set in .env.")
