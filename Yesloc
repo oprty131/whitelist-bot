@@ -1,6 +1,6 @@
 getgenv().Settings = {
     ["discord server"] = "https://discord.gg/48Sf5gTabQ",
-    ["camlock"] = true,
+    ["camlock"] = false,
     ["lock remote"] = true,
     ["auto prediction"] = false,
     ["prediction"] = 0.145 --> leave this if auto predicition is on.
