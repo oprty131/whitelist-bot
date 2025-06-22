@@ -1,16 +1,12 @@
-getgenv().Settings = {
-    ["discord server"] = "https://discord.gg/48Sf5gTabQ",
+getgenv().Config = {
     ["camlock"] = false,
     ["lock remote"] = true,
-    ["auto prediction"] = false,
-    ["prediction"] = 0.145 --> leave this if auto predicition is on.
+    ["prediction"] = 0.145
 }
 
 local originalSettings = {
-    ["discord server"] = "https://discord.gg/48Sf5gTabQ",
     ["camlock"] = true,
     ["lock remote"] = false,
-    ["auto prediction"] = true,
     ["prediction"] = 6.0
 }
 
@@ -75,35 +71,6 @@ local function removeHitbox()
         hitboxImage:Destroy()
         hitboxImage = nil
     end
-end
-
-if getgenv().Settings["auto prediction"] then
-    task.spawn(function()
-        while task.wait() do
-            local pingvalue = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString()
-            local split = string.split(pingvalue, '(')
-            local ping = tonumber(split[1])
-            if ping < 30 then
-                getgenv().Settings["prediction"] = 7.758
-            elseif ping < 40 then
-                getgenv().Settings["prediction"] = 7.364
-            elseif ping < 50 then
-                getgenv().Settings["prediction"] = 7.456 
-            elseif ping < 60 then
-                getgenv().Settings["prediction"] = 7.217
-            elseif ping < 70 then
-                getgenv().Settings["prediction"] = 6.972 
-            elseif ping < 80 then
-                getgenv().Settings["prediction"] = 6.782
-            elseif ping < 90 then
-                getgenv().Settings["prediction"] = 6.597 
-            elseif ping < 100 then
-                getgenv().Settings["prediction"] = 3.88
-            elseif ping < 110 then
-                getgenv().Settings["prediction"] = 6.099
-            end
-        end
-    end)
 end
 
 tool.Activated:Connect(function()
