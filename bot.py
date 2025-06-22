@@ -55,7 +55,7 @@ async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
 
-@bot.tree.command(name="whitelist", description="Add a user ID to the whitelist")
+@bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
 async def whitelist(interaction: discord.Interaction, userid: int):
     try:
@@ -145,7 +145,7 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
-@bot.tree.command(name="check", description="Check who you whitelisted")
+@bot.tree.command(name="check", description="Check your whitelisted account")
 async def check(interaction: discord.Interaction):
     try:
         discord_id = str(interaction.user.id)
