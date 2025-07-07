@@ -50,6 +50,8 @@ async def on_ready():
     print(f"Bot is online as {bot.user}")
 
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
+@app_commands.allowed_installs(guilds=True, users=True)
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
