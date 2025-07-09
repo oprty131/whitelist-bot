@@ -18,8 +18,8 @@ def home():
 def run_flask():
     app.run(host='0.0.0.0', port=8080)
 
-# === Data Files ===
 MAPPING_FILE = "mapping.json"
+WHITELIST_BACKUP_CHANNEL_ID = 123456789012345678  # <- Replace with your backup channel ID
 
 def load_mapping():
     if not os.path.isfile(MAPPING_FILE):
@@ -30,6 +30,12 @@ def load_mapping():
 def save_mapping(data):
     with open(MAPPING_FILE, "w") as f:
         json.dump(data, f, indent=4)
+
+async def send_backup_file(bot):
+    if os.path.exists(MAPPING_FILE):
+        channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
+        if channel:
+            await channel.send(file=discord.File(MAPPING_FILE, filename="mapping.json"))
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -50,8 +56,6 @@ async def on_ready():
     print(f"Bot is online as {bot.user}")
 
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
-@app_commands.allowed_installs(guilds=True, users=True)
-@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
@@ -92,11 +96,34 @@ async def whitelist(interaction: discord.Interaction, userid: int):
         if post_response.status_code == 200:
             mapping[discord_id] = userid
             save_mapping(mapping)
+            await send_backup_file(bot)
             embed = discord.Embed(title="✅ Whitelisted", description=f"**{username}** (`{userid}`) has been added to the whitelist.", color=0x00FF00)
             embed.set_thumbnail(url=avatar_url)
             await interaction.response.send_message(embed=embed, ephemeral=False)
         else:
             await interaction.response.send_message("❌ Failed to update whitelist table.", ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
+
+@bot.tree.command(name="loaddatabase", description="Restore mapping.json from latest backup")
+async def loaddatabase(interaction: discord.Interaction):
+    try:
+        channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
+        if not channel:
+            await interaction.response.send_message("❌ Backup channel not found.", ephemeral=True)
+            return
+
+        messages = [msg async for msg in channel.history(limit=50) if msg.attachments]
+        for msg in messages:
+            for attachment in msg.attachments:
+                if attachment.filename == "mapping.json":
+                    file_data = await attachment.read()
+                    with open(MAPPING_FILE, "wb") as f:
+                        f.write(file_data)
+                    await interaction.response.send_message("✅ `mapping.json` restored successfully.", ephemeral=False)
+                    return
+
+        await interaction.response.send_message("❌ No recent mapping.json backup found.", ephemeral=True)
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
@@ -139,6 +166,7 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
         if post_response.status_code == 200:
             mapping[discord_id] = new_userid
             save_mapping(mapping)
+            await send_backup_file(bot)
             embed = discord.Embed(title="✅ Replaced", description=f"Replaced with **{username}** (`{new_userid}`).", color=0x00FF00)
             embed.set_image(url=avatar_url)
             await interaction.response.send_message(embed=embed, ephemeral=False)
