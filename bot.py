@@ -36,6 +36,23 @@ async def send_backup_file(bot):
         channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
         if channel:
             await channel.send(file=discord.File(MAPPING_FILE, filename="mapping.json"))
+            
+async def auto_restore_database(bot):
+    channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
+    if not channel:
+        print("❌ Backup channel not found.")
+        return
+
+    messages = [msg async for msg in channel.history(limit=50) if msg.attachments]
+    for msg in messages:
+        for attachment in msg.attachments:
+            if attachment.filename == "mapping.json":
+                file_data = await attachment.read()
+                with open(MAPPING_FILE, "wb") as f:
+                    f.write(file_data)
+                print("✅ mapping.json restored on startup.")
+                return
+    print("⚠️ No recent mapping.json backup found.")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -53,6 +70,7 @@ class CustomMessageButtonView(discord.ui.View):
 @bot.event
 async def on_ready():
     await bot.tree.sync()
+    await auto_restore_database(bot)
     print(f"Bot is online as {bot.user}")
 
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
@@ -79,7 +97,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
         username = user_data["name"]
         avatar_url = f"https://www.roblox.com/headshot-thumbnail/image?userId={userid}&width=420&height=420&format=png"
 
-        response = requests.get("https://okei.pythonanywhere.com/Premium")
+        response = requests.get("https://peeky.pythonanywhere.com/Premium")
         table_code = response.text.strip()
         ids = [int(i.strip()) for i in table_code[table_code.find("{")+1:table_code.find("}")].split(",") if i.strip().isdigit()]
 
@@ -91,7 +109,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
 
         ids.append(userid)
         updated_table = "return {\n    " + ",\n    ".join(map(str, ids)) + "\n}"
-        post_response = requests.post("https://okei.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"}, data={"content": updated_table})
+        post_response = requests.post("https://peeky.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"}, data={"content": updated_table})
 
         if post_response.status_code == 200:
             mapping[discord_id] = userid
@@ -146,7 +164,7 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
         username = user_data["name"]
         avatar_url = f"https://www.roblox.com/headshot-thumbnail/image?userId={new_userid}&width=420&height=420&format=png"
 
-        response = requests.get("https://okei.pythonanywhere.com/Premium")
+        response = requests.get("https://peeky.pythonanywhere.com/Premium")
         table_code = response.text.strip()
         ids = [int(i.strip()) for i in table_code[table_code.find("{")+1:table_code.find("}")].split(",") if i.strip().isdigit()]
 
@@ -161,7 +179,7 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
             ids.pop(index)
 
         updated_table = "return {\n    " + ",\n    ".join(map(str, ids)) + "\n}"
-        post_response = requests.post("https://okei.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"}, data={"content": updated_table})
+        post_response = requests.post("https://peeky.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"}, data={"content": updated_table})
 
         if post_response.status_code == 200:
             mapping[discord_id] = new_userid
