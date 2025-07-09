@@ -19,7 +19,7 @@ def run_flask():
     app.run(host='0.0.0.0', port=8080)
 
 MAPPING_FILE = "mapping.json"
-WHITELIST_BACKUP_CHANNEL_ID = 123456789012345678  # <- Replace with your backup channel ID
+WHITELIST_BACKUP_CHANNEL_ID = 1319770254347599882
 
 def load_mapping():
     if not os.path.isfile(MAPPING_FILE):
