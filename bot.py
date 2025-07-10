@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+GUILD_ID = 1218339001203818576
+ROLE_ID = 1266420174836207717
+
 app = Flask(__name__)
 @app.route('/')
 def home():
@@ -31,12 +34,15 @@ def save_mapping(data):
     with open(MAPPING_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
+def user_has_role(member: discord.Member, role_id: int):
+    return any(role.id == role_id for role in member.roles)
+
 async def send_backup_file(bot):
     if os.path.exists(MAPPING_FILE):
         channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
         if channel:
             await channel.send(file=discord.File(MAPPING_FILE, filename="mapping.json"))
-            
+
 async def auto_restore_database(bot):
     channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
     if not channel:
@@ -56,6 +62,8 @@ async def auto_restore_database(bot):
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.guilds = True
+intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 class CustomMessageButtonView(discord.ui.View):
@@ -76,12 +84,28 @@ async def on_ready():
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
+    if interaction.guild_id != GUILD_ID:
+        await interaction.response.send_message("❌ This command can only be used in the authorized server.", ephemeral=True)
+        return
+    member = interaction.guild.get_member(interaction.user.id)
+    if not member or not user_has_role(member, ROLE_ID):
+        await interaction.response.send_message("❌ You don't have the required role to use this command.", ephemeral=True)
+        return
+
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
 
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
 async def whitelist(interaction: discord.Interaction, userid: int):
+    if interaction.guild_id != GUILD_ID:
+        await interaction.response.send_message("❌ This command can only be used in the authorized server.", ephemeral=True)
+        return
+    member = interaction.guild.get_member(interaction.user.id)
+    if not member or not user_has_role(member, ROLE_ID):
+        await interaction.response.send_message("❌ You don't have the required role to use this command.", ephemeral=True)
+        return
+
     try:
         discord_id = str(interaction.user.id)
         mapping = load_mapping()
@@ -148,6 +172,14 @@ async def loaddatabase(interaction: discord.Interaction):
 @bot.tree.command(name="replace", description="Replace your whitelisted UserId with a new one")
 @app_commands.describe(new_userid="New UserId")
 async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
+    if interaction.guild_id != GUILD_ID:
+        await interaction.response.send_message("❌ This command can only be used in the authorized server.", ephemeral=True)
+        return
+    member = interaction.guild.get_member(interaction.user.id)
+    if not member or not user_has_role(member, ROLE_ID):
+        await interaction.response.send_message("❌ You don't have the required role to use this command.", ephemeral=True)
+        return
+
     try:
         discord_id = str(interaction.user.id)
         mapping = load_mapping()
@@ -195,6 +227,14 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
 
 @bot.tree.command(name="check", description="Check your whitelisted account")
 async def check(interaction: discord.Interaction):
+    if interaction.guild_id != GUILD_ID:
+        await interaction.response.send_message("❌ This command can only be used in the authorized server.", ephemeral=True)
+        return
+    member = interaction.guild.get_member(interaction.user.id)
+    if not member or not user_has_role(member, ROLE_ID):
+        await interaction.response.send_message("❌ You don't have the required role to use this command.", ephemeral=True)
+        return
+
     try:
         discord_id = str(interaction.user.id)
         mapping = load_mapping()
