@@ -7,7 +7,6 @@ from discord.ext import commands
 from discord import app_commands
 from flask import Flask
 from dotenv import load_dotenv
-from openai import OpenAI
 
 load_dotenv()
 
@@ -96,28 +95,6 @@ async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
     
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-@bot.tree.command(name="ask", description="Ask ChatGPT a question")
-@app_commands.describe(question="Your question for ChatGPT")
-async def ask(interaction: discord.Interaction, question: str):
-    await interaction.response.defer(thinking=True)
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": question}
-            ],
-            temperature=0.8
-        )
-
-        reply = response.choices[0].message.content
-        await interaction.followup.send(f"**ChatGPT:** {reply}")
-    except Exception as e:
-        await interaction.followup.send(f"❌ Failed to get a response: `{e}`")
-
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
 async def whitelist(interaction: discord.Interaction, userid: int):
