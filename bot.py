@@ -7,6 +7,7 @@ from discord.ext import commands
 from discord import app_commands
 from flask import Flask
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
@@ -95,31 +96,24 @@ async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
     
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 @bot.tree.command(name="ask", description="Ask ChatGPT a question")
 @app_commands.describe(question="Your question for ChatGPT")
 async def ask(interaction: discord.Interaction, question: str):
     await interaction.response.defer(thinking=True)
 
     try:
-        headers = {
-            "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "model": "gpt-4o",
-            "messages": [
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": question}
             ],
-            "temperature": 0.8
-        }
-        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
-        data = response.json()
+            temperature=0.8
+        )
 
-        if response.status_code != 200 or "choices" not in data:
-            raise Exception(data.get("error", {}).get("message", "Unknown error"))
-
-        reply = data["choices"][0]["message"]["content"]
+        reply = response.choices[0].message.content
         await interaction.followup.send(f"**ChatGPT:** {reply}")
     except Exception as e:
         await interaction.followup.send(f"❌ Failed to get a response: `{e}`")
