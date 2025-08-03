@@ -94,6 +94,35 @@ async def say_command(interaction: discord.Interaction, message: str):
 
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
+    
+@bot.tree.command(name="ask", description="Ask ChatGPT a question")
+@app_commands.describe(question="Your question for ChatGPT")
+async def ask(interaction: discord.Interaction, question: str):
+    await interaction.response.defer(thinking=True)
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gpt-4o",
+            "messages": [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": question}
+            ],
+            "temperature": 0.8
+        }
+        response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
+        data = response.json()
+
+        if response.status_code != 200 or "choices" not in data:
+            raise Exception(data.get("error", {}).get("message", "Unknown error"))
+
+        reply = data["choices"][0]["message"]["content"]
+        await interaction.followup.send(f"**ChatGPT:** {reply}")
+    except Exception as e:
+        await interaction.followup.send(f"❌ Failed to get a response: `{e}`")
 
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
