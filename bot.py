@@ -94,7 +94,32 @@ async def say_command(interaction: discord.Interaction, message: str):
 
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
-    
+
+@bot.tree.command(name="codex", description="Find and send the latest CODEX ANDROID message from a fixed channel")
+async def codex(interaction: discord.Interaction):
+    CHANNEL_ID = 123456789012345678  # Replace with your followed news channel ID
+    channel = bot.get_channel(CHANNEL_ID)
+
+    if not channel:
+        await interaction.response.send_message("❌ Channel not found or bot can't access it.", ephemeral=True)
+        return
+
+    if not channel.permissions_for(interaction.guild.me).read_message_history:
+        await interaction.response.send_message("❌ I don't have permission to read messages in that channel.", ephemeral=True)
+        return
+
+    await interaction.response.defer(ephemeral=False)
+
+    try:
+        async for msg in channel.history(limit=100):
+            if "CODEX ANDROID" in msg.content.upper():
+                await interaction.followup.send(f"📢 Found message:\n\n{msg.content}")
+                return
+
+        await interaction.followup.send("❌ No message containing 'CODEX ANDROID' found in the last 100 messages.")
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}")
+
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
 async def whitelist(interaction: discord.Interaction, userid: int):
