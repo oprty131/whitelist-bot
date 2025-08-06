@@ -105,17 +105,20 @@ async def codex(interaction: discord.Interaction):
             if "CODEX ANDROID" in msg.content.upper() and "```" in msg.content:
                 code_block = msg.content.split("```")[1]
                 version_line = next((line for line in code_block.splitlines() if any(char.isdigit() for char in line)), "")
-                codex_version = next((word for word in version_line.split() if word.count('.') == 3), None)
-
-                if not codex_version:
-                    await interaction.followup.send("❌ No valid version found in changelog.")
-                    return
+                codex_version = next((word for word in version_line.replace("(", "").replace(")", "").split() if "." in word), None)
 
                 ios_data = requests.get("https://itunes.apple.com/lookup?id=431946152").json()
                 ios_version = ios_data["results"][0]["version"]
-                ios_main = ".".join(ios_version.split(".")[:4])
-                status = "🟢 Codex Working" if ios_main == codex_version else "🔴 Codex is not working at the moment"
 
+                codex_parts = codex_version.strip().split(".")
+                ios_parts = ios_version.strip().split(".")
+
+                match = all(
+                    codex_parts[i] == ios_parts[i]
+                    for i in range(min(len(codex_parts), 4))
+                )
+
+                status = "🟢 Codex Working" if match else "🔴 Codex is not working at the moment"
                 await interaction.followup.send(f"**{status}**\n```{code_block}```")
                 return
 
