@@ -96,11 +96,6 @@ async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
 
-import requests
-import re
-import discord
-from discord import app_commands
-
 @bot.tree.command(name="codex", description="Latest Codex News")
 async def codex(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=False)
