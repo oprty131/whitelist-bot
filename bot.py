@@ -95,25 +95,15 @@ async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
 
-@bot.tree.command(name="codex", description="Find and send the latest CODEX ANDROID message from a fixed channel")
+@bot.tree.command(name="codex", description="Latest Codex News")
 async def codex(interaction: discord.Interaction):
-    CHANNEL_ID = 1402685581691060306 # Replace with your followed news channel ID
-    channel = bot.get_channel(CHANNEL_ID)
-
-    if not channel:
-        await interaction.response.send_message("❌ Channel not found or bot can't access it.", ephemeral=True)
-        return
-
-    if not channel.permissions_for(interaction.guild.me).read_message_history:
-        await interaction.response.send_message("❌ I don't have permission to read messages in that channel.", ephemeral=True)
-        return
-
+    channel = bot.get_channel(1402685581691060306)
     await interaction.response.defer(ephemeral=False)
 
     try:
         async for msg in channel.history(limit=100):
             if "CODEX ANDROID" in msg.content.upper():
-                await interaction.followup.send(f"📢 Found message:\n\n{msg.content}")
+                await interaction.followup.send(f"📢 Codex Last Update:\n\n{msg.content}")
                 return
 
         await interaction.followup.send("❌ No message containing 'CODEX ANDROID' found in the last 100 messages.")
