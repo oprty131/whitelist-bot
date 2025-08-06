@@ -97,50 +97,47 @@ async def say_command(interaction: discord.Interaction, message: str):
 
 @bot.tree.command(name="codex", description="Latest Codex News")
 async def codex(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=False)
     channel = bot.get_channel(1402685581691060306)
+    await interaction.response.defer(ephemeral=False)
 
     try:
         async for msg in channel.history(limit=100):
             if "CODEX ANDROID" in msg.content.upper() and "```" in msg.content:
                 code_block = msg.content.split("```")[1]
-                codex_version = next(
-                    (
-                        word for line in code_block.splitlines()
-                        if any(char.isdigit() for char in line)
-                        for word in line.replace("(", "").replace(")", "").split()
-                        if "." in word
-                    ),
-                    None
-                )
+                version_line = next((line for line in code_block.splitlines() if any(char.isdigit() for char in line)), "")
+                codex_version = next((word for word in version_line.replace("(", "").replace(")", "").split() if "." in word), None)
 
                 if not codex_version:
-                    await interaction.followup.send("No valid version found in changelog.")
+                    await interaction.followup.send("❌ No valid version found in changelog.")
                     return
 
-                Roblox_Android_Version = re.search(r"version\s+([\d\.]+)", requests.get("https://apkpure.net/roblox-android/com.roblox.client/download?utm_content=1008").text)
+                # Fetch Android version from APKPure
+                response = requests.get("https://apkpure.net/roblox-android/com.roblox.client/download?utm_content=1008")
+                android_version_match = re.search(r"version\s+([\d\.]+)", response.text)
 
-                if not Roblox_Android_Version:
-                    await interaction.followup.send("Couldn't fetch Android version.")
+                if not android_version_match:
+                    await interaction.followup.send("❌ Couldn't fetch Android version.")
                     return
 
-                if all(
-                    codex_version.strip().split(".")[i] ==
-                    Roblox_Android_Version.group(1).strip().split(".")[i]
-                    for i in range(min(
-                        len(codex_version.strip().split(".")),
-                        len(Roblox_Android_Version.group(1).strip().split(".")),
-                        4
-                    ))
-                ):
-                    await interaction.followup.send(f"Codex is Working.\n{code_block}\nDownload at https://codex.lol/android")
-                else:
-                    await interaction.followup.send(f"Codex is Down.\n{code_block}")
+                android_version = android_version_match.group(1)
+
+                codex_parts = codex_version.strip().split(".")
+                android_parts = android_version.strip().split(".")
+
+                match = all(
+                    codex_parts[i] == android_parts[i]
+                    for i in range(min(len(codex_parts), 4))
+                )
+
+                status = "🟢 Codex is Working." if match else "🔴 Codex is Down."
+                download_line = "\n# **Download at** https://codex.lol/android" if match else ""
+
+                await interaction.followup.send(f"**{status}**\n```{code_block}```{download_line}")
                 return
 
-        await interaction.followup.send("No message containing 'CODEX ANDROID' found.")
+        await interaction.followup.send("❌ No message containing 'CODEX ANDROID' found.")
     except Exception as e:
-        await interaction.followup.send(f"An error occurred:\n{e}")
+        await interaction.followup.send(f"❌ An error occurred:\n```{e}```")
 
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
