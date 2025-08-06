@@ -97,7 +97,7 @@ async def say_command(interaction: discord.Interaction, message: str):
 
 @bot.tree.command(name="codex", description="Find and send the latest CODEX ANDROID message from a fixed channel")
 async def codex(interaction: discord.Interaction):
-    CHANNEL_ID = 123456789012345678  # Replace with your followed news channel ID
+    CHANNEL_ID = 1402685581691060306 # Replace with your followed news channel ID
     channel = bot.get_channel(CHANNEL_ID)
 
     if not channel:
