@@ -95,16 +95,6 @@ async def say_command(interaction: discord.Interaction, message: str):
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
 
-import requests
-import re
-import discord
-from discord import app_commands
-
-import requests
-import re
-import discord
-from discord import app_commands
-
 @bot.tree.command(name="codex", description="Latest Codex News")
 async def codex(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=False)
@@ -125,24 +115,32 @@ async def codex(interaction: discord.Interaction):
                 )
 
                 if not codex_version:
-                    await interaction.followup.send("❌ No valid version found in changelog.")
+                    await interaction.followup.send("No valid version found in changelog.")
                     return
 
-                if all(codex_version.strip().split(".")[i] == re.search(r"version\s+([\d\.]+)",requests.get("https://apkpure.net/roblox-android/com.roblox.client/download?utm_content=1008").text).group(1).strip().split(".")[i]
+                Roblox_Android_Version = re.search(r"version\s+([\d\.]+)", requests.get("https://apkpure.net/roblox-android/com.roblox.client/download?utm_content=1008").text)
+
+                if not Roblox_Android_Version:
+                    await interaction.followup.send("Couldn't fetch Android version.")
+                    return
+
+                if all(
+                    codex_version.strip().split(".")[i] ==
+                    Roblox_Android_Version.group(1).strip().split(".")[i]
                     for i in range(min(
                         len(codex_version.strip().split(".")),
-                        len(match_android.group(1).strip().split(".")),
+                        len(Roblox_Android_Version.group(1).strip().split(".")),
                         4
                     ))
                 ):
-                    await interaction.followup.send(f"**🟢 Codex is Working.**\n```{code_block}```\n# **Download at** https://codex.lol/android")
+                    await interaction.followup.send(f"Codex is Working.\n{code_block}\nDownload at https://codex.lol/android")
                 else:
-                    await interaction.followup.send(f"**🔴 Codex is Down.**\n```{code_block}```")
+                    await interaction.followup.send(f"Codex is Down.\n{code_block}")
                 return
 
-        await interaction.followup.send("❌ No message containing 'CODEX ANDROID' found.")
+        await interaction.followup.send("No message containing 'CODEX ANDROID' found.")
     except Exception as e:
-        await interaction.followup.send(f"❌ An error occurred:\n```{e}```")
+        await interaction.followup.send(f"An error occurred:\n{e}")
 
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
