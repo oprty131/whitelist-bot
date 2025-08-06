@@ -122,7 +122,7 @@ async def codex(interaction: discord.Interaction):
                     for i in range(min(len(codex_parts), 4))
                 )
 
-                status = "🟢 Codex Working" if match else "🔴 Codex is not working at the moment"
+                status = "🟢 Codex is Working." if match else "🔴 Codex is Down."
                 download_line = "\n# **Download at** https://codex.lol/android" if match else ""
 
                 await interaction.followup.send(f"**{status}**\n```{code_block}```{download_line}")
