@@ -107,6 +107,10 @@ async def codex(interaction: discord.Interaction):
                 version_line = next((line for line in code_block.splitlines() if any(char.isdigit() for char in line)), "")
                 codex_version = next((word for word in version_line.replace("(", "").replace(")", "").split() if "." in word), None)
 
+                if not codex_version:
+                    await interaction.followup.send("❌ No valid version found in changelog.")
+                    return
+
                 ios_data = requests.get("https://itunes.apple.com/lookup?id=431946152").json()
                 ios_version = ios_data["results"][0]["version"]
 
@@ -119,7 +123,9 @@ async def codex(interaction: discord.Interaction):
                 )
 
                 status = "🟢 Codex Working" if match else "🔴 Codex is not working at the moment"
-                await interaction.followup.send(f"**{status}**\n```{code_block}```")
+                download_line = "\n# **Download at** https://codex.lol/android" if match else ""
+
+                await interaction.followup.send(f"**{status}**\n```{code_block}```{download_line}")
                 return
 
         await interaction.followup.send("❌ No message containing 'CODEX ANDROID' found.")
