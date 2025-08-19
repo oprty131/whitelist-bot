@@ -164,9 +164,12 @@ async def delta(interaction: discord.Interaction):
         android_status = "🟢 Working" if delta_android_version else "🔴 Down"
         ios_status = "🟢 Working" if delta_ios_version else "🔴 Down"
 
+        android_link = "\n# **Download at** https://deltaexploits.gg/delta-executor-android" if delta_android_version else ""
+        ios_link = "\n# **Download at** https://deltaexploits.gg/delta-executor-ios" if delta_ios_version else ""
+
         await interaction.followup.send(
-            f"**Delta Android:** {android_status}\n"
-            f"**Delta iOS:** {ios_status}\n"
+            f"**Delta Android:** {android_status}{android_link}\n"
+            f"**Delta iOS:** {ios_status}{ios_link}\n"
             f"{f'```{android_block}```' if android_block else ''}"
             f"{f'```{ios_block}```' if ios_block else ''}"
         )
@@ -226,7 +229,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
-@bot.tree.command(name="loaddatabase", description="Restore mapping.json from latest backup")
+@bot.tree.command(name="LoadDatabase", description="Restore mapping.json from latest backup")
 async def loaddatabase(interaction: discord.Interaction):
     try:
         channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
