@@ -132,6 +132,54 @@ async def codex(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")
 
+@bot.tree.command(name="Delta", description="Latest Delta News")
+async def delta(interaction: discord.Interaction):
+    channel = bot.get_channel(1402685581691060306)
+    await interaction.response.defer(ephemeral=False)
+
+    try:
+        android_code_block = ""
+        ios_code_block = ""
+        android_status = "❌ Delta Android update not found."
+        ios_status = "❌ Delta iOS update not found."
+
+        async for msg in channel.history(limit=100):
+            content_upper = msg.content.upper()
+            if "DELTA ANDROID UPDATE" in content_upper and "```" in msg.content:
+                android_code_block = msg.content.split("```")[1]
+                version_line = next(
+                    (line for line in android_code_block.splitlines() if any(char.isdigit() for char in line)), ""
+                )
+                android_version = next(
+                    (word for word in version_line.replace("(", "").replace(")", "").split() if "." in word), None
+                )
+                if android_version:
+                    android_status = f"🟢 Delta Android is Working (v{android_version})"
+                else:
+                    android_status = "🔴 Delta Android version not found."
+
+            elif "DELTA IOS UPDATE" in content_upper and "```" in msg.content:
+                ios_code_block = msg.content.split("```")[1]
+                version_line = next(
+                    (line for line in ios_code_block.splitlines() if any(char.isdigit() for char in line)), ""
+                )
+                ios_version = next(
+                    (word for word in version_line.replace("(", "").replace(")", "").split() if "." in word), None
+                )
+                if ios_version:
+                    ios_status = f"🟢 Delta iOS is Working (v{ios_version})"
+                else:
+                    ios_status = "🔴 Delta iOS version not found."
+
+        download_line = "\n# **Download Delta Android at** https://codex.lol/android" if "🟢" in android_status else ""
+
+        await interaction.followup.send(
+            f"**Delta Status:**\n{android_status}\n{ios_status}\n```{android_code_block or ios_code_block}```{download_line}"
+        )
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error: {e}")
+
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
 async def whitelist(interaction: discord.Interaction, userid: int):
