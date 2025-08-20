@@ -7,7 +7,6 @@ from discord.ext import commands
 from discord import app_commands
 from flask import Flask
 from dotenv import load_dotenv
-from bs4 import BeautifulSoup
 
 load_dotenv()
 
@@ -174,32 +173,6 @@ async def delta(interaction: discord.Interaction):
             f"{f'```{android_block}```' if android_block else ''}"
             f"{f'```{ios_block}```' if ios_block else ''}"
         )
-
-    except Exception as e:
-        await interaction.followup.send(f"❌ Error: {e}")
-
-@bot.tree.command(name="roblox", description="Get latest Roblox Android version from APKPure")
-async def roblox(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=False)
-    try:
-        url = "https://apkpure.com/roblox-android/com.roblox.client/download?utm_content=1008"
-        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        if r.status_code != 200:
-            await interaction.followup.send("❌ Failed to fetch Roblox version.")
-            return
-
-        soup = BeautifulSoup(r.text, "html.parser")
-        # APKPure puts version text in <span class="ver"> or similar
-        version_span = soup.find("span", {"class": "ver"})
-        version = version_span.text.strip() if version_span else None
-
-        if not version:
-            await interaction.followup.send("❌ Could not find Roblox version on APKPure.")
-            return
-
-        embed = discord.Embed(title="📱 Roblox Android Version", description=f"Latest version: **{version}**", color=0x00FF00)
-        embed.add_field(name="Download", value=f"[APKPure Link]({url})", inline=False)
-        await interaction.followup.send(embed=embed)
 
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")
