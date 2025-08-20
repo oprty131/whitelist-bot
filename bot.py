@@ -253,7 +253,7 @@ async def whitelist(interaction: discord.Interaction, userid: int):
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
 
 @bot.tree.command(name="LoadDatabase", description="Restore mapping.json from latest backup")
-async def loaddatabase(interaction: discord.Interaction):
+async def LoadDatabase(interaction: discord.Interaction):
     try:
         channel = bot.get_channel(WHITELIST_BACKUP_CHANNEL_ID)
         if not channel:
