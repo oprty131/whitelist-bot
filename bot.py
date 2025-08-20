@@ -3,6 +3,7 @@ import os
 import requests
 import json
 import threading
+import re
 from discord.ext import commands
 from discord import app_commands
 from flask import Flask
@@ -176,6 +177,27 @@ async def delta(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")
+@bot.tree.command(name="roblox_latest_android_version", description="Fetches the latest Roblox Android version from APKPure")
+async def roblox_version_command(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=False)
+
+    try:
+        url = 'https://apkpure.com/roblox-android/com.roblox.client/download?utm_content=1008'
+        response = requests.get(url, timeout=10)
+
+        if response.status_code != 200:
+            await interaction.followup.send(f"❌ Failed to fetch version. Status: {response.status_code}")
+            return
+
+        match = re.search(r'\b\d+\.\d+\.\d+\b', response.text)
+        if match:
+            version = match.group(0)
+            await interaction.followup.send(f"📱 Latest Roblox Android version on APKPure: **{version}**")
+        else:
+            await interaction.followup.send("❌ Could not find version on the page.")
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error occurred: `{e}`")
 
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
