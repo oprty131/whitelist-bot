@@ -177,6 +177,7 @@ async def delta(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")
+        
 @bot.tree.command(name="roblox_latest_android_version", description="Fetches the latest Roblox Android version from APKPure")
 async def roblox_version_command(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=False)
