@@ -3,11 +3,11 @@ import os
 import requests
 import json
 import threading
-import re
 from discord.ext import commands
 from discord import app_commands
 from flask import Flask
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 load_dotenv()
 
@@ -177,32 +177,33 @@ async def delta(interaction: discord.Interaction):
 
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")
-        
-@bot.tree.command(name="roblox_latest_android_version", description="Fetches the latest Roblox Android version from APKPure")
-async def roblox_version_command(interaction: discord.Interaction):
+
+@bot.tree.command(name="roblox", description="Get latest Roblox Android version from APKPure")
+async def roblox(interaction: discord.Interaction):
     await interaction.response.defer(ephemeral=False)
-
     try:
-        url = 'https://apkpure.com/roblox-android/com.roblox.client/download?utm_content=1008'
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
-        }
-        response = requests.get(url, headers=headers, timeout=10)
-
-        if response.status_code != 200:
-            await interaction.followup.send(f"❌ Failed to fetch version. Status: {response.status_code}")
+        url = "https://apkpure.com/roblox-android/com.roblox.client/download?utm_content=1008"
+        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        if r.status_code != 200:
+            await interaction.followup.send("❌ Failed to fetch Roblox version.")
             return
 
-        match = re.search(r'\b\d+\.\d+\.\d+\b', response.text)
-        if match:
-            version = match.group(0)
-            await interaction.followup.send(f"📱 Latest Roblox Android version on APKPure: **{version}**")
-        else:
-            await interaction.followup.send("❌ Could not find version on the page.")
+        soup = BeautifulSoup(r.text, "html.parser")
+        # APKPure puts version text in <span class="ver"> or similar
+        version_span = soup.find("span", {"class": "ver"})
+        version = version_span.text.strip() if version_span else None
+
+        if not version:
+            await interaction.followup.send("❌ Could not find Roblox version on APKPure.")
+            return
+
+        embed = discord.Embed(title="📱 Roblox Android Version", description=f"Latest version: **{version}**", color=0x00FF00)
+        embed.add_field(name="Download", value=f"[APKPure Link]({url})", inline=False)
+        await interaction.followup.send(embed=embed)
 
     except Exception as e:
-        await interaction.followup.send(f"❌ Error occurred: `{e}`")
-
+        await interaction.followup.send(f"❌ Error: {e}")
+        
 @bot.tree.command(name="whitelist", description="Add a UserId to the whitelist")
 @app_commands.describe(userid="UserId to whitelist")
 async def whitelist(interaction: discord.Interaction, userid: int):
