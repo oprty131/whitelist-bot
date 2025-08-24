@@ -3,7 +3,6 @@ import os
 import requests
 import json
 import threading
-import asyncio
 from discord.ext import commands
 from discord import app_commands
 from flask import Flask
@@ -95,45 +94,6 @@ async def say_command(interaction: discord.Interaction, message: str):
 
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
-    
-@bot.tree.command(name="snipe", description="Search Roblox servers for a target user ID")
-@app_commands.describe(place_id="Roblox game Place ID", target_user_id="The target user's ID to find in servers")
-async def snipe(interaction: discord.Interaction, place_id: int, target_user_id: int):
-    await interaction.response.send_message(f"🔍 Searching for user `{target_user_id}` in servers of place `{place_id}`...", ephemeral=True)
-
-    found = False
-    cursor = None
-    headers = {"User-Agent": "DiscordBot/1.0"}
-
-    while True:
-        # Fetch a page of servers
-        url = f"https://games.roblox.com/v1/games/{place_id}/servers/Public?limit=100"
-        if cursor:
-            url += f"&cursor={cursor}"
-
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            await interaction.followup.send("❌ Failed to fetch server list. Try again later.", ephemeral=True)
-            return
-
-        data = response.json()
-        servers = data.get("data", [])
-
-        # Check each server for the target user
-        for server in servers:
-            players = server.get("players", [])
-            if any(player.get("id") == target_user_id for player in players):
-                server_id = server.get("id")
-                await interaction.followup.send(f"✅ Target found! Server ID: `{server_id}`", ephemeral=False)
-                return
-
-        # Move to the next page
-        cursor = data.get("nextPageCursor")
-        if not cursor:
-            break  # No more pages
-        await asyncio.sleep(1.5)  # avoid hitting rate limits
-
-    await interaction.followup.send("❌ Target not found in currently listed servers.", ephemeral=True)
     
 @bot.tree.command(name="codex", description="Latest Codex News")
 async def codex(interaction: discord.Interaction):
