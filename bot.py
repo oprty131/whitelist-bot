@@ -191,10 +191,6 @@ async def whitelist(interaction: discord.Interaction, userid: int):
     try:
         discord_id = str(interaction.user.id)
         mapping = load_mapping()
-        if discord_id in mapping:
-            await interaction.response.send_message("❌ You already have a whitelisted account. Use `/replace`.", ephemeral=True)
-            return
-
         user_info = requests.get(f"https://users.roblox.com/v1/users/{userid}")
         if user_info.status_code != 200:
             await interaction.response.send_message(f"❌ User ID `{userid}` doesn't exist on Roblox.", ephemeral=True)
@@ -207,6 +203,14 @@ async def whitelist(interaction: discord.Interaction, userid: int):
         table_code = response.text.strip()
         ids = [int(i.strip()) for i in table_code[table_code.find("{")+1:table_code.find("}")].split(",") if i.strip().isdigit()]
 
+        if discord_id in mapping:
+            old_userid = mapping[discord_id]
+            if old_userid not in ids:
+                pass
+            else:
+                await interaction.response.send_message("❌ You already have a whitelisted account. Use `/replace`.", ephemeral=True)
+                return
+
         if userid in ids:
             embed = discord.Embed(title="✅ Already Whitelisted", description=f"**{username}** (`{userid}`) is already whitelisted.", color=0x00FF00)
             embed.set_thumbnail(url=avatar_url)
@@ -215,7 +219,11 @@ async def whitelist(interaction: discord.Interaction, userid: int):
 
         ids.append(userid)
         updated_table = "return {\n    " + ",\n    ".join(map(str, ids)) + "\n}"
-        post_response = requests.post("https://peeky.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"}, data={"content": updated_table})
+        post_response = requests.post(
+            "https://peeky.pythonanywhere.com/edit/Premium",
+            headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"},
+            data={"content": updated_table}
+        )
 
         if post_response.status_code == 200:
             mapping[discord_id] = userid
@@ -283,24 +291,33 @@ async def replacewhitelist(interaction: discord.Interaction, new_userid: int):
         ids = [int(i.strip()) for i in table_code[table_code.find("{")+1:table_code.find("}")].split(",") if i.strip().isdigit()]
 
         if old_userid not in ids:
-            await interaction.response.send_message("❌ Your previous ID is no longer in the whitelist.", ephemeral=True)
-            return
-
-        index = ids.index(old_userid)
-        if new_userid not in ids:
-            ids[index] = new_userid
+            # Old ID no longer exists, allow re-whitelisting
+            index = None
         else:
-            ids.pop(index)
+            index = ids.index(old_userid)
+
+        if new_userid not in ids:
+            if index is not None:
+                ids[index] = new_userid
+            else:
+                ids.append(new_userid)
+        else:
+            if index is not None:
+                ids.pop(index)
 
         updated_table = "return {\n    " + ",\n    ".join(map(str, ids)) + "\n}"
-        post_response = requests.post("https://peeky.pythonanywhere.com/edit/Premium", headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"}, data={"content": updated_table})
+        post_response = requests.post(
+            "https://peeky.pythonanywhere.com/edit/Premium",
+            headers={"Content-Type": "application/x-www-form-urlencoded", "X-Bypass-Auth": "supersecretbypass123"},
+            data={"content": updated_table}
+        )
 
         if post_response.status_code == 200:
             mapping[discord_id] = new_userid
             save_mapping(mapping)
             await send_backup_file(bot)
             embed = discord.Embed(title="✅ Replaced", description=f"Replaced with **{username}** (`{new_userid}`).", color=0x00FF00)
-            embed.set_image(url=avatar_url)
+            embed.set_thumbnail(url=avatar_url)  # Thumbnail instead of embed image
             await interaction.response.send_message(embed=embed, ephemeral=False)
         else:
             await interaction.response.send_message("❌ Failed to update table.", ephemeral=True)
@@ -327,14 +344,14 @@ async def check(interaction: discord.Interaction):
         userid = mapping[discord_id]
         user_info = requests.get(f"https://users.roblox.com/v1/users/{userid}")
         if user_info.status_code != 200:
-            await interaction.response.send_message("❌ This UserId doesn't exists.", ephemeral=True)
+            await interaction.response.send_message("❌ This UserId doesn't exist.", ephemeral=True)
             return
         user_data = user_info.json()
         username = user_data["name"]
         avatar_url = f"https://www.roblox.com/headshot-thumbnail/image?userId={userid}&width=420&height=420&format=png"
 
         embed = discord.Embed(title="Whitelisted Account", description=f"**{username}** (`{userid}`)", color=0x00FF00)
-        embed.set_image(url=avatar_url)
+        embed.set_thumbnail(url=avatar_url)
         await interaction.response.send_message(embed=embed, ephemeral=False)
     except Exception as e:
         await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
