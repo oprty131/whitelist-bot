@@ -178,12 +178,6 @@ async def delta(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"❌ Error: {e}")
 
-import discord
-from discord import app_commands
-import time
-import requests
-import asyncio
-
 cooldowns = {}
 
 @bot.tree.command(name="snipe", description="Stream Snipe Someone")
