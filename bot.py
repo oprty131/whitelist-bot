@@ -89,15 +89,14 @@ previous_status = None
 async def check_status():
     global previous_status
 
-    await client.wait_until_ready()
-    channel = client.get_channel(1302378980019667097)
+    await bot.wait_until_ready()
+    channel = bot.get_channel(1302378980019667097)
 
-    while not client.is_closed():
+    while not bot.is_closed():
         try:
             url = "https://downforeveryoneorjustme.com/pythonanywhere.com"
             r = requests.get(url, timeout=10)
             soup = BeautifulSoup(r.text, "html.parser")
-
             text = soup.get_text().lower()
 
             if "it's just you" in text:
@@ -109,7 +108,7 @@ async def check_status():
 
             if current_status != previous_status:
                 previous_status = current_status
-                await channel.send(f"🔔 **TBO is:** `{current_status}`")
+                await channel.send(f"🔔 **PythonAnywhere status changed:** `{current_status}`")
 
         except Exception as e:
             print("Error:", e)
