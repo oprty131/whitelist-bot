@@ -90,7 +90,7 @@ async def check_status():
     global previous_status
 
     await client.wait_until_ready()
-    channel = client.get_channel(CHANNEL_ID)
+    channel = client.get_channel(1302378980019667097)
 
     while not client.is_closed():
         try:
