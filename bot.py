@@ -108,7 +108,7 @@ async def check_status():
 
             if current_status != previous_status:
                 previous_status = current_status
-                await channel.send(f"🔔 **PythonAnywhere status changed:** `{current_status}`")
+                await channel.send(f"🔔 **TBO is:** `{current_status}`")
 
         except Exception as e:
             print("Error:", e)
