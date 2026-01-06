@@ -1,6 +1,7 @@
 import discord
 import os
 import requests
+import asyncio 
 import json
 import threading
 import time
@@ -8,6 +9,7 @@ from discord.ext import commands
 from discord import app_commands
 from flask import Flask
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 load_dotenv()
 
@@ -81,6 +83,38 @@ async def on_ready():
     await bot.tree.sync()
     await auto_restore_database(bot)
     print(f"Bot is online as {bot.user}")
+
+previous_status = None
+
+async def check_status():
+    global previous_status
+
+    await client.wait_until_ready()
+    channel = client.get_channel(CHANNEL_ID)
+
+    while not client.is_closed():
+        try:
+            url = "https://downforeveryoneorjustme.com/pythonanywhere.com"
+            r = requests.get(url, timeout=10)
+            soup = BeautifulSoup(r.text, "html.parser")
+
+            text = soup.get_text().lower()
+
+            if "it's just you" in text:
+                current_status = "UP"
+            elif "looks down" in text:
+                current_status = "DOWN"
+            else:
+                current_status = "UNKNOWN"
+
+            if current_status != previous_status:
+                previous_status = current_status
+                await channel.send(f"🔔 **TBO is:** `{current_status}`")
+
+        except Exception as e:
+            print("Error:", e)
+
+        await asyncio.sleep(60)
 
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
