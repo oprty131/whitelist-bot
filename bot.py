@@ -117,6 +117,7 @@ async def check_status():
 
 FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
+
 def is_admin(member):
     return member.guild_permissions.administrator
 
@@ -125,7 +126,8 @@ class KeyPanel(discord.ui.View):
 
     @discord.ui.button(label="Generate Key", style=discord.ButtonStyle.green)
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
-        r = requests.post(
+        r = await asyncio.to_thread(
+            requests.post,
             f"{FLASK_API}/create_key",
             json={
                 "discord_id": str(interaction.user.id),
@@ -165,7 +167,8 @@ class ResetModal(discord.ui.Modal, title="Reset HWID"):
     key = discord.ui.TextInput(label="Key", placeholder="ABC123-XYZ789")
 
     async def on_submit(self, interaction: discord.Interaction):
-        r = requests.post(
+        r = await asyncio.to_thread(
+            requests.post,
             f"{FLASK_API}/reset_key",
             json={"key": self.key.value},
             headers={"X-Bot-Secret": BOT_SECRET},
