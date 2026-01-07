@@ -140,27 +140,34 @@ class KeyPanel(discord.ui.View):
 
         data = r.json()
 
-        if not data.get("ok"):
+    if not data.get("ok"):
+        if data.get("reason") == "already_generated":
             await interaction.response.send_message(
-                "❌ Failed to generate key",
+                "❌ You already generated a key.",
                 ephemeral=True
             )
             return
 
         await interaction.response.send_message(
-            f"🔑 **Your Key:** `{data['key']}`\nBound on first execution.",
+            "❌ Failed to generate key",
             ephemeral=True
         )
+        return
+
+    key = data["key"]
+
+    script = (
+        f'getgenv().Key = "{key}"\n'
+        f'loadstring(game:HttpGet("https://peeky.pythonanywhere.com/jjs"))()'
+    )
+
+    await interaction.response.send_message(
+        f"```lua\n{script}\n```",
+        ephemeral=True
+    )
 
     @discord.ui.button(label="Reset Key", style=discord.ButtonStyle.red)
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if not is_admin(interaction.user):
-            await interaction.response.send_message(
-                "❌ Admin only",
-                ephemeral=True
-            )
-            return
-
         modal = ResetModal()
         await interaction.response.send_modal(modal)
 
@@ -176,16 +183,17 @@ class ResetModal(discord.ui.Modal, title="Reset HWID"):
             timeout=10
         )
 
-        if r.json().get("ok"):
+        data = r.json()
+
+        if data.get("ok"):
+            await interaction.response.send_message("✅ HWID reset Successful .", ephemeral=True)
+        elif data.get("reason") == "cooldown":
             await interaction.response.send_message(
-                "✅ HWID reset successful",
+                "You must wait 24 hours before resetting again.",
                 ephemeral=True
             )
         else:
-            await interaction.response.send_message(
-                "❌ Invalid key",
-                ephemeral=True
-            )
+            await interaction.response.send_message("❌ Invalid key.", ephemeral=True)
 
 @bot.command()
 @commands.has_permissions(administrator=True)
