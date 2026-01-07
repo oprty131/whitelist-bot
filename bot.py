@@ -137,7 +137,6 @@ class KeyPanel(discord.ui.View):
             headers={"X-Bot-Secret": BOT_SECRET},
             timeout=10
         )
-
         data = r.json()
 
         if not data.get("ok"):
@@ -148,18 +147,46 @@ class KeyPanel(discord.ui.View):
             return
 
         key = data["key"]
+        script = f'getgenv().Key = "{key}"\nloadstring(game:HttpGet("https://peeky.pythonanywhere.com/jjs"))()'
+        await interaction.response.send_message(f"```lua\n{script}\n```", ephemeral=True)
 
-        script = (
-            f'getgenv().Key = "{key}"\n'
-            f'loadstring(game:HttpGet("https://peeky.pythonanywhere.com/jjs"))()'
+    @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
+    async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
+        r = await asyncio.to_thread(
+            requests.post,
+            f"{FLASK_API}/reset_key",
+            json={"discord_id": str(interaction.user.id)},
+            headers={"X-Bot-Secret": BOT_SECRET},
+            timeout=10
         )
+        data = r.json()
+        if data.get("ok"):
+            await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
+        elif data.get("reason") == "cooldown":
+            await interaction.response.send_message("⏳ You must wait 24h before resetting again.", ephemeral=True)
+        else:
+            await interaction.response.send_message("❌ Reset failed.", ephemeral=True)
 
-        await interaction.response.send_message(
-            f"```lua\n{script}\n```",
-            ephemeral=True
-        )
-        
-    @app_commands.command(name="Remove Whitelist", description="Remove a Discord user from the whitelist")
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def setuppanel(ctx):
+    embed = discord.Embed(
+        title="🔐 Whitelist Panel",
+        description="Generate or reset whitelist keys",
+        color=0x2B2D31
+    )
+
+    await ctx.send(embed=embed, view=KeyPanel())
+    bot.add_view(view)
+
+class AdminCommands(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @app_commands.command(
+        name="Remove Whitelist",
+        description="Remove a Discord user from the whitelist"
+    )
     @app_commands.default_permissions(administrator=True)
     @app_commands.describe(user="The Discord user to remove from whitelist")
     async def removewhitelist(self, interaction: discord.Interaction, user: discord.Member):
@@ -177,61 +204,13 @@ class KeyPanel(discord.ui.View):
             return
 
         if data.get("ok"):
-            await interaction.response.send_message(
-                f"✅ {user.name} has been removed from the whitelist.", ephemeral=True
-            )
+            await interaction.response.send_message(f"✅ {user.name} has been removed from the whitelist.", ephemeral=True)
         else:
-            await interaction.response.send_message(
-                f"❌ Could not remove {user.name} from the whitelist.", ephemeral=True
-            )
+            await interaction.response.send_message(f"❌ Could not remove {user.name} from the whitelist.", ephemeral=True)
+
+async def setup(bot):
+    await bot.add_cog(AdminCommands(bot))
             
-@discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
-async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
-    r = await asyncio.to_thread(
-        requests.post,
-        f"{FLASK_API}/reset_key",
-        json={
-            "discord_id": str(interaction.user.id)
-        },
-        headers={"X-Bot-Secret": BOT_SECRET},
-        timeout=10
-    )
-
-    data = r.json()
-
-    if data.get("ok"):
-        await interaction.response.send_message(
-            "✅ Your HWID has been reset.",
-            ephemeral=True
-        )
-    elif data.get("reason") == "cooldown":
-        await interaction.response.send_message(
-            "⏳ You must wait 24 hours before resetting again.",
-            ephemeral=True
-        )
-    elif data.get("reason") == "no_key":
-        await interaction.response.send_message(
-            "❌ You don’t have a key.",
-            ephemeral=True
-        )
-    else:
-        await interaction.response.send_message(
-            "❌ Reset failed.",
-            ephemeral=True
-        )
-
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def setuppanel(ctx):
-    embed = discord.Embed(
-        title="🔐 Whitelist Panel",
-        description="Generate or reset whitelist keys",
-        color=0x2B2D31
-    )
-
-    await ctx.send(embed=embed, view=KeyPanel())
-    bot.add_view(view)
-    
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
