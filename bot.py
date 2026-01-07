@@ -117,6 +117,8 @@ async def check_status():
 
 FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
+def is_admin(member):
+    return member.guild_permissions.administrator
 
 class KeyPanel(discord.ui.View):
     timeout = None
