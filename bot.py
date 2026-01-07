@@ -165,6 +165,8 @@ class KeyPanel(discord.ui.View):
         elif data.get("reason") == "cooldown":
             ts = int(time.time()) + 86400 
             await interaction.response.send_message("You must wait <t:{ts}:R> before resetting again.", ephemeral=True)
+        elif data.get("reason") == "no_key":
+            await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)    
         else:
             await interaction.response.send_message("❌ Reset failed.", ephemeral=True)
 
