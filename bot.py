@@ -140,6 +140,7 @@ class KeyPanel(discord.ui.View):
 
         data = r.json()
 
+        if not data.get("ok"):
             await interaction.response.send_message(
                 "❌ Failed to generate key",
                 ephemeral=True
