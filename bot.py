@@ -80,6 +80,7 @@ class CustomMessageButtonView(discord.ui.View):
 
 @bot.event
 async def on_ready():
+    bot.add_view(KeyPanel())    
     await bot.tree.sync()
     await auto_restore_database(bot)
     print(f"Bot is online as {bot.user}")
