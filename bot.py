@@ -158,7 +158,33 @@ class KeyPanel(discord.ui.View):
             f"```lua\n{script}\n```",
             ephemeral=True
         )
+        
+    @app_commands.command(name="Remove Whitelist", description="Remove a Discord user from the whitelist")
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.describe(user="The Discord user to remove from whitelist")
+    async def removewhitelist(self, interaction: discord.Interaction, user: discord.Member):
+        try:
+            r = await asyncio.to_thread(
+                requests.post,
+                f"{FLASK_API}/unwhitelist",
+                json={"discord_id": str(user.id)},
+                headers={"X-Bot-Secret": BOT_SECRET},
+                timeout=10
+            )
+            data = r.json()
+        except Exception as e:
+            await interaction.response.send_message(f"❌ Failed: {e}", ephemeral=True)
+            return
 
+        if data.get("ok"):
+            await interaction.response.send_message(
+                f"✅ {user.name} has been removed from the whitelist.", ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                f"❌ Could not remove {user.name} from the whitelist.", ephemeral=True
+            )
+            
 @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
 async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
     r = await asyncio.to_thread(
