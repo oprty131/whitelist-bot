@@ -197,7 +197,8 @@ async def setuppanel(ctx):
     )
 
     await ctx.send(embed=embed, view=KeyPanel())
-
+    bot.add_view(view)
+    
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
