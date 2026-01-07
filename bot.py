@@ -128,11 +128,13 @@ class KeyPanel(discord.ui.View):
 
     @discord.ui.button(label="Get Script", style=discord.ButtonStyle.green)
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
-    if not user_has_whitelist_role(interaction.user):
-        await interaction.response.send_message(
-            "❌ You don’t have permission to use this command.", ephemeral=True
-        )
-        return        
+        if not user_has_whitelist_role(interaction.user):
+            await interaction.response.send_message(
+                "❌ You don’t have permission to use this command.",
+                ephemeral=True
+            )
+            return
+
         r = await asyncio.to_thread(
             requests.post,
             f"{FLASK_API}/create_key",
@@ -158,11 +160,13 @@ class KeyPanel(discord.ui.View):
 
     @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
-    if not user_has_whitelist_role(interaction.user):
-        await interaction.response.send_message(
-            "❌ You don’t have permission to use this command.", ephemeral=True
-        )
-        return        
+        if not user_has_whitelist_role(interaction.user):
+            await interaction.response.send_message(
+                "❌ You don’t have permission to use this command.",
+                ephemeral=True
+            )
+            return
+
         r = await asyncio.to_thread(
             requests.post,
             f"{FLASK_API}/reset_key",
@@ -171,12 +175,13 @@ class KeyPanel(discord.ui.View):
             timeout=10
         )
         data = r.json()
+
         if data.get("ok"):
             await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
         elif data.get("reason") == "cooldown":
             await interaction.response.send_message("You must wait 24h before resetting again.", ephemeral=True)
         elif data.get("reason") == "no_key":
-            await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)    
+            await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)
         else:
             await interaction.response.send_message("❌ Reset failed.", ephemeral=True)
 
