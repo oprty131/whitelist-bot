@@ -140,31 +140,31 @@ class KeyPanel(discord.ui.View):
 
         data = r.json()
 
-    if not data.get("ok"):
-        if data.get("reason") == "already_generated":
+        if not data.get("ok"):
+            if data.get("reason") == "already_generated":
+                await interaction.response.send_message(
+                    "❌ You already generated a key.",
+                    ephemeral=True
+                )
+                return
+
             await interaction.response.send_message(
-                "❌ You already generated a key.",
+                "❌ Failed to generate key",
                 ephemeral=True
             )
             return
 
+        key = data["key"]
+
+        script = (
+            f'getgenv().Key = "{key}"\n'
+            f'loadstring(game:HttpGet("https://peeky.pythonanywhere.com/jjs"))()'
+        )
+
         await interaction.response.send_message(
-            "❌ Failed to generate key",
+            f"```lua\n{script}\n```",
             ephemeral=True
         )
-        return
-
-    key = data["key"]
-
-    script = (
-        f'getgenv().Key = "{key}"\n'
-        f'loadstring(game:HttpGet("https://peeky.pythonanywhere.com/jjs"))()'
-    )
-
-    await interaction.response.send_message(
-        f"```lua\n{script}\n```",
-        ephemeral=True
-    )
 
     @discord.ui.button(label="Reset Key", style=discord.ButtonStyle.red)
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
