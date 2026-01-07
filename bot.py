@@ -140,14 +140,6 @@ class KeyPanel(discord.ui.View):
 
         data = r.json()
 
-        if not data.get("ok"):
-            if data.get("reason") == "already_generated":
-                await interaction.response.send_message(
-                    "❌ You already generated a key.",
-                    ephemeral=True
-                )
-                return
-
             await interaction.response.send_message(
                 "❌ Failed to generate key",
                 ephemeral=True
@@ -166,34 +158,40 @@ class KeyPanel(discord.ui.View):
             ephemeral=True
         )
 
-    @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
-    async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = ResetModal()
-        await interaction.response.send_modal(modal)
+@discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
+async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
+    r = await asyncio.to_thread(
+        requests.post,
+        f"{FLASK_API}/reset_key",
+        json={
+            "discord_id": str(interaction.user.id)
+        },
+        headers={"X-Bot-Secret": BOT_SECRET},
+        timeout=10
+    )
 
-class ResetModal(discord.ui.Modal, title="Reset HWID"):
-    key = discord.ui.TextInput(label="Key", placeholder="ABC123-XYZ789")
+    data = r.json()
 
-    async def on_submit(self, interaction: discord.Interaction):
-        r = await asyncio.to_thread(
-            requests.post,
-            f"{FLASK_API}/reset_key",
-            json={"key": self.key.value},
-            headers={"X-Bot-Secret": BOT_SECRET},
-            timeout=10
+    if data.get("ok"):
+        await interaction.response.send_message(
+            "✅ Your HWID has been reset.",
+            ephemeral=True
         )
-
-        data = r.json()
-
-        if data.get("ok"):
-            await interaction.response.send_message("✅ HWID reset Successful .", ephemeral=True)
-        elif data.get("reason") == "cooldown":
-            await interaction.response.send_message(
-                "You must wait 24 hours before resetting again.",
-                ephemeral=True
-            )
-        else:
-            await interaction.response.send_message("❌ Invalid key.", ephemeral=True)
+    elif data.get("reason") == "cooldown":
+        await interaction.response.send_message(
+            "⏳ You must wait 24 hours before resetting again.",
+            ephemeral=True
+        )
+    elif data.get("reason") == "no_key":
+        await interaction.response.send_message(
+            "❌ You don’t have a key.",
+            ephemeral=True
+        )
+    else:
+        await interaction.response.send_message(
+            "❌ Reset failed.",
+            ephemeral=True
+        )
 
 @bot.command()
 @commands.has_permissions(administrator=True)
