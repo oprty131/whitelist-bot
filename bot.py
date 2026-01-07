@@ -197,7 +197,7 @@ async def whitelist(ctx, user: discord.Member):
         
 @bot.command(name="dewhitelist")
 @commands.has_permissions(administrator=True)
-async def unwhitelist(ctx, user: discord.Member):
+async def dewhitelist(ctx, user: discord.Member):
     if ctx.guild is None or ctx.guild.id != GUILD_ID:
         await ctx.reply("❌ This command can only be used in the authorized server.")
         return
