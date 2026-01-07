@@ -177,26 +177,48 @@ async def setuppanel(ctx):
     )
     await ctx.send(embed=embed, view=KeyPanel())
 
-    @bot.tree.command(name="Remove Whitelist", description="Remove a Discord user from the whitelist")
-    @app_commands.describe(user="The Discord user to remove from whitelist")
-    async def removewhitelist(interaction: discord.Interaction, user: discord.Member):
-        try:
-            r = await asyncio.to_thread(
-                requests.post,
-                f"{FLASK_API}/unwhitelist",
-                json={"discord_id": str(user.id)},
-                headers={"X-Bot-Secret": BOT_SECRET},
-                timeout=10
-            )
-            data = r.json()
-        except Exception as e:
-            await interaction.response.send_message(f"❌ Failed: {e}", ephemeral=True)
-            return
+@bot.tree.command(name="Remove Whitelist", description="Remove a Discord user from the whitelist")
+@app_commands.describe(user="The Discord user to remove from whitelist")
+@app_commands.default_permissions(administrator=True)
+async def removewhitelist(interaction: discord.Interaction, user: discord.Member):
+    if interaction.guild_id != GUILD_ID:
+        await interaction.response.send_message(
+            "❌ This command can only be used in the authorized server.",
+            ephemeral=True
+        )
+        return
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message(
+            "❌ Admins only.",
+            ephemeral=True
+        )
+        return
+    try:
+        r = await asyncio.to_thread(
+            requests.post,
+            f"{FLASK_API}/unwhitelist",
+            json={"discord_id": str(user.id)},
+            headers={"X-Bot-Secret": BOT_SECRET},
+            timeout=10
+        )
+        data = r.json()
+    except Exception as e:
+        await interaction.response.send_message(
+            f"❌ Failed: {e}",
+            ephemeral=True
+        )
+        return
 
-        if data.get("ok"):
-            await interaction.response.send_message(f"✅ {user.name} has been removed from the whitelist.", ephemeral=True)
-        else:
-            await interaction.response.send_message(f"❌ Could not remove {user.name} from the whitelist.", ephemeral=True)
+    if data.get("ok"):
+        await interaction.response.send_message(
+            f"✅ {user.name} has been removed from the whitelist.",
+            ephemeral=True
+        )
+    else:
+        await interaction.response.send_message(
+            f"❌ Could not remove {user.name} from the whitelist.",
+            ephemeral=True
+        )
             
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
