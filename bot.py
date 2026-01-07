@@ -120,6 +120,9 @@ FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
 WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
 
+def user_has_whitelist_role(member: discord.Member):
+    return any(role.id in WHITELIST_ROLES for role in member.roles)
+    
 class KeyPanel(discord.ui.View):
     timeout = None
 
@@ -194,13 +197,22 @@ async def whitelist(ctx, user: discord.Member):
     if role:
         await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
         await ctx.send(f"✅ {user.mention} has been whitelisted and given the role.")
-        
+
 @bot.command(name="dewhitelist")
 @commands.has_permissions(administrator=True)
 async def dewhitelist(ctx, user: discord.Member):
     if ctx.guild is None or ctx.guild.id != GUILD_ID:
         await ctx.reply("❌ This command can only be used in the authorized server.")
         return
+
+    roles_to_remove = [
+        ctx.guild.get_role(role_id)
+        for role_id in WHITELIST_ROLES
+        if ctx.guild.get_role(role_id) and ctx.guild.get_role(role_id) in user.roles
+    ]
+
+    if roles_to_remove:
+        await user.remove_roles(*roles_to_remove)
 
     try:
         r = await asyncio.to_thread(
@@ -216,9 +228,9 @@ async def dewhitelist(ctx, user: discord.Member):
         return
 
     if data.get("ok"):
-        await ctx.reply(f"✅ {user.name} has been removed from the whitelist.")
+        await ctx.reply(f"✅ {user.name} has been fully dewhitelisted.")
     else:
-        await ctx.reply(f"❌ Could not remove {user.name} from the whitelist.")
+        await ctx.reply(f"❌ Could not dewhitelist {user.name}.")
             
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
