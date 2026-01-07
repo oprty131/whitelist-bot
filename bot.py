@@ -118,15 +118,18 @@ async def check_status():
 
 FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
-
-def is_admin(member):
-    return member.guild_permissions.administrator
+WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
 
 class KeyPanel(discord.ui.View):
     timeout = None
 
     @discord.ui.button(label="Get Script", style=discord.ButtonStyle.green)
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
+    if not has_whitelist_role(interaction.user):
+        await interaction.response.send_message(
+            "❌ You don’t have permission to use this command.", ephemeral=True
+        )
+        return        
         r = await asyncio.to_thread(
             requests.post,
             f"{FLASK_API}/create_key",
@@ -152,6 +155,11 @@ class KeyPanel(discord.ui.View):
 
     @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
+    if not has_whitelist_role(interaction.user):
+        await interaction.response.send_message(
+            "❌ You don’t have permission to use this command.", ephemeral=True
+        )
+        return        
         r = await asyncio.to_thread(
             requests.post,
             f"{FLASK_API}/reset_key",
@@ -178,7 +186,15 @@ async def setuppanel(ctx):
         color=0x2B2D31
     )
     await ctx.send(embed=embed, view=KeyPanel())
-
+    
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def whitelist(ctx, user: discord.Member):
+    role = ctx.guild.get_role(1458574695401132265)
+    if role:
+        await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
+        await ctx.send(f"✅ {user.mention} has been whitelisted and given the role.")
+        
 @bot.command(name="unwhitelist")
 @commands.has_permissions(administrator=True)
 async def unwhitelist(ctx, user: discord.Member):
