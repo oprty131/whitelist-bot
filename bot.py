@@ -175,21 +175,11 @@ async def setuppanel(ctx):
         description="Generate or reset whitelist keys",
         color=0x2B2D31
     )
-
     await ctx.send(embed=embed, view=KeyPanel())
-    bot.add_view(view)
 
-class AdminCommands(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    @app_commands.command(
-        name="Remove Whitelist",
-        description="Remove a Discord user from the whitelist"
-    )
-    @app_commands.default_permissions(administrator=True)
+    @bot.tree.command(name="Remove Whitelist", description="Remove a Discord user from the whitelist")
     @app_commands.describe(user="The Discord user to remove from whitelist")
-    async def removewhitelist(self, interaction: discord.Interaction, user: discord.Member):
+    async def removewhitelist(interaction: discord.Interaction, user: discord.Member):
         try:
             r = await asyncio.to_thread(
                 requests.post,
@@ -207,9 +197,6 @@ class AdminCommands(commands.Cog):
             await interaction.response.send_message(f"✅ {user.name} has been removed from the whitelist.", ephemeral=True)
         else:
             await interaction.response.send_message(f"❌ Could not remove {user.name} from the whitelist.", ephemeral=True)
-
-async def setup(bot):
-    await bot.add_cog(AdminCommands(bot))
             
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
