@@ -125,7 +125,7 @@ def is_admin(member):
 class KeyPanel(discord.ui.View):
     timeout = None
 
-    @discord.ui.button(label="Generate Key", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Get Script", style=discord.ButtonStyle.green)
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
         r = await asyncio.to_thread(
             requests.post,
@@ -166,7 +166,7 @@ class KeyPanel(discord.ui.View):
             ephemeral=True
         )
 
-    @discord.ui.button(label="Reset Key", style=discord.ButtonStyle.red)
+    @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         modal = ResetModal()
         await interaction.response.send_modal(modal)
