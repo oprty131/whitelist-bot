@@ -195,7 +195,7 @@ async def whitelist(ctx, user: discord.Member):
         await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
         await ctx.send(f"✅ {user.mention} has been whitelisted and given the role.")
         
-@bot.command(name="unwhitelist")
+@bot.command(name="dewhitelist")
 @commands.has_permissions(administrator=True)
 async def unwhitelist(ctx, user: discord.Member):
     if ctx.guild is None or ctx.guild.id != GUILD_ID:
