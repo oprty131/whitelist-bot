@@ -115,6 +115,83 @@ async def check_status():
 
         await asyncio.sleep(60)
 
+FLASK_API = "https://okei.pythonanywhere.com"
+BOT_SECRET = "robertmike56"
+
+class KeyPanel(discord.ui.View):
+    timeout = None
+
+    @discord.ui.button(label="Generate Key", style=discord.ButtonStyle.green)
+    async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
+        r = requests.post(
+            f"{FLASK_API}/create_key",
+            json={
+                "discord_id": str(interaction.user.id),
+                "discord_username": interaction.user.name
+            },
+            headers={"X-Bot-Secret": BOT_SECRET},
+            timeout=10
+        )
+
+        data = r.json()
+
+        if not data.get("ok"):
+            await interaction.response.send_message(
+                "❌ Failed to generate key",
+                ephemeral=True
+            )
+            return
+
+        await interaction.response.send_message(
+            f"🔑 **Your Key:** `{data['key']}`\nBound on first execution.",
+            ephemeral=True
+        )
+
+    @discord.ui.button(label="Reset Key", style=discord.ButtonStyle.red)
+    async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not is_admin(interaction.user):
+            await interaction.response.send_message(
+                "❌ Admin only",
+                ephemeral=True
+            )
+            return
+
+        modal = ResetModal()
+        await interaction.response.send_modal(modal)
+
+class ResetModal(discord.ui.Modal, title="Reset HWID"):
+    key = discord.ui.TextInput(label="Key", placeholder="ABC123-XYZ789")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        r = requests.post(
+            f"{FLASK_API}/reset_key",
+            json={"key": self.key.value},
+            headers={"X-Bot-Secret": BOT_SECRET},
+            timeout=10
+        )
+
+        if r.json().get("ok"):
+            await interaction.response.send_message(
+                "✅ HWID reset successful",
+                ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                "❌ Invalid key",
+                ephemeral=True
+            )
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def setuppanel(ctx):
+    embed = discord.Embed(
+        title="🔐 Whitelist Panel",
+        description="Generate or reset whitelist keys",
+        color=0x2B2D31
+    )
+
+    await ctx.send(embed=embed, view=KeyPanel())
+
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
