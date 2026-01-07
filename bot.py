@@ -177,10 +177,9 @@ async def setuppanel(ctx):
     )
     await ctx.send(embed=embed, view=KeyPanel())
 
-@bot.tree.command(name="Remove Whitelist", description="Remove a Discord user from the whitelist")
+@bot.tree.command(name="unwhitelist", description="Remove a Discord user from the whitelist")
 @app_commands.describe(user="The Discord user to remove from whitelist")
-@app_commands.default_permissions(administrator=True)
-async def removewhitelist(interaction: discord.Interaction, user: discord.Member):
+async def unwhitelist(interaction: discord.Interaction, user: discord.Member):
     if interaction.guild_id != GUILD_ID:
         await interaction.response.send_message(
             "❌ This command can only be used in the authorized server.",
