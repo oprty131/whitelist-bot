@@ -163,8 +163,7 @@ class KeyPanel(discord.ui.View):
         if data.get("ok"):
             await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
         elif data.get("reason") == "cooldown":
-            ts = int(time.time()) + 86400 
-            await interaction.response.send_message("You must wait <t:{ts}:R> before resetting again.", ephemeral=True)
+            await interaction.response.send_message("You must wait 24h before resetting again.", ephemeral=True)
         elif data.get("reason") == "no_key":
             await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)    
         else:
@@ -180,21 +179,13 @@ async def setuppanel(ctx):
     )
     await ctx.send(embed=embed, view=KeyPanel())
 
-@bot.tree.command(name="unwhitelist", description="Remove a Discord user from the whitelist")
-@app_commands.describe(user="The Discord user to remove from whitelist")
-async def unwhitelist(interaction: discord.Interaction, user: discord.Member):
-    if interaction.guild_id != GUILD_ID:
-        await interaction.response.send_message(
-            "❌ This command can only be used in the authorized server.",
-            ephemeral=True
-        )
+@bot.command(name="unwhitelist")
+@commands.has_permissions(administrator=True)
+async def unwhitelist(ctx, user: discord.Member):
+    if ctx.guild is None or ctx.guild.id != GUILD_ID:
+        await ctx.reply("❌ This command can only be used in the authorized server.")
         return
-    if not interaction.user.guild_permissions.administrator:
-        await interaction.response.send_message(
-            "❌ Admins only.",
-            ephemeral=True
-        )
-        return
+
     try:
         r = await asyncio.to_thread(
             requests.post,
@@ -205,22 +196,13 @@ async def unwhitelist(interaction: discord.Interaction, user: discord.Member):
         )
         data = r.json()
     except Exception as e:
-        await interaction.response.send_message(
-            f"❌ Failed: {e}",
-            ephemeral=True
-        )
+        await ctx.reply(f"❌ Failed: {e}")
         return
 
     if data.get("ok"):
-        await interaction.response.send_message(
-            f"✅ {user.name} has been removed from the whitelist.",
-            ephemeral=True
-        )
+        await ctx.reply(f"✅ {user.name} has been removed from the whitelist.")
     else:
-        await interaction.response.send_message(
-            f"❌ Could not remove {user.name} from the whitelist.",
-            ephemeral=True
-        )
+        await ctx.reply(f"❌ Could not remove {user.name} from the whitelist.")
             
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
