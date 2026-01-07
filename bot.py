@@ -128,7 +128,7 @@ class KeyPanel(discord.ui.View):
 
     @discord.ui.button(label="Get Script", style=discord.ButtonStyle.green)
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
-    if not has_whitelist_role(interaction.user):
+    if not user_has_whitelist_role(interaction.user):
         await interaction.response.send_message(
             "❌ You don’t have permission to use this command.", ephemeral=True
         )
@@ -158,7 +158,7 @@ class KeyPanel(discord.ui.View):
 
     @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
-    if not has_whitelist_role(interaction.user):
+    if not user_has_whitelist_role(interaction.user):
         await interaction.response.send_message(
             "❌ You don’t have permission to use this command.", ephemeral=True
         )
@@ -190,9 +190,9 @@ async def setuppanel(ctx):
     )
     await ctx.send(embed=embed, view=KeyPanel())
     
-@bot.command()
+@bot.command(name="whitelist")
 @commands.has_permissions(administrator=True)
-async def whitelist(ctx, user: discord.Member):
+async def whitelisty(ctx, user: discord.Member):
     role = ctx.guild.get_role(1458574695401132265)
     if role:
         await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
