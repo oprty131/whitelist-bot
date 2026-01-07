@@ -163,7 +163,8 @@ class KeyPanel(discord.ui.View):
         if data.get("ok"):
             await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
         elif data.get("reason") == "cooldown":
-            await interaction.response.send_message("You must wait data.get("discord_timestamp", "") before resetting again.", ephemeral=True)
+            ts = int(time.time()) + 86400 
+            await interaction.response.send_message("You must wait <t:{ts}:R> before resetting again.", ephemeral=True)
         else:
             await interaction.response.send_message("❌ Reset failed.", ephemeral=True)
 
