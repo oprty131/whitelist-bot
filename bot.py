@@ -191,7 +191,7 @@ class KeyPanel(discord.ui.View):
         if data.get("ok"):
             await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
         elif data.get("reason") == "cooldown":
-            await interaction.response.send_message("You can reset your HWID in <t:{data.get('reset_timestamp')}:R>", ephemeral=True)            
+            await interaction.response.send_message(f"You can reset your HWID in <t:{data.get('reset_timestamp')}:R>.", ephemeral=True)            
         elif data.get("reason") == "no_key":
             await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)
         else:
