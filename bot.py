@@ -120,6 +120,18 @@ FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
 WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
 
+def format_duration(seconds: int):
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+
+    parts = []
+    if h: parts.append(f"{h}h")
+    if m: parts.append(f"{m}m")
+    if s: parts.append(f"{s}s")
+
+    return " ".join(parts)
+
 def user_has_whitelist_role(member: discord.Member):
     return any(role.id in WHITELIST_ROLES for role in member.roles)
     
@@ -179,7 +191,7 @@ class KeyPanel(discord.ui.View):
         if data.get("ok"):
             await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
         elif data.get("reason") == "cooldown":
-            await interaction.response.send_message("You must wait 24h before resetting again.", ephemeral=True)
+            await interaction.response.send_message("You can reset your HWID in <t:{data.get('reset_timestamp')}:R>.", ephemeral=True)            
         elif data.get("reason") == "no_key":
             await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)
         else:
