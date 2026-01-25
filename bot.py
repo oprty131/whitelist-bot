@@ -248,7 +248,28 @@ async def dewhitelist(ctx, user: discord.Member):
         await ctx.reply(f"✅ {user.name} has been fully dewhitelisted.")
     else:
         await ctx.reply(f"❌ Could not dewhitelist {user.name}.")
-            
+
+@bot.tree.command(name="resethwid", description="Reset a user's HWID")
+@app_commands.default_permissions(administrator=True)
+@app_commands.guild_only()
+async def reset_hwid(interaction: discord.Interaction,user: discord.Member):
+    r = requests.post(f"{FLASK_API}/admin_reset_key",
+        json={"discord_id": str(user.id)},
+        headers={"X-Bot-Secret": BOT_SECRET}
+    )
+
+    data = r.json()
+
+    if data["ok"]:
+        await interaction.response.send_message(
+            f"✅ HWID reset for **{user.name}**"
+        )
+    else:
+        await interaction.response.send_message(
+            f"❌ Failed: `{data.get('reason')}`",
+            ephemeral=True
+        )
+        
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
