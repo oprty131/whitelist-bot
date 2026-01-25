@@ -253,9 +253,12 @@ async def dewhitelist(ctx, user: discord.Member):
 @app_commands.default_permissions(administrator=True)
 @app_commands.guild_only()
 async def reset_hwid(interaction: discord.Interaction,user: discord.Member):
-    r = requests.post(f"{FLASK_API}/admin_reset_key",
+    r = await asyncio.to_thread(
+        requests.post,
+        f"{FLASK_API}/admin_reset_key",
         json={"discord_id": str(user.id)},
-        headers={"X-Bot-Secret": BOT_SECRET}
+        headers={"X-Bot-Secret": BOT_SECRET},
+        timeout=10
     )
 
     data = r.json()
