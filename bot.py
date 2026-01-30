@@ -218,10 +218,6 @@ async def whitelisty(ctx, user: discord.Member):
 @bot.command(name="dewhitelist")
 @commands.has_permissions(administrator=True)
 async def dewhitelist(ctx, user: discord.Member):
-    if ctx.guild is None or ctx.guild.id != GUILD_ID:
-        await ctx.reply("❌ This command can only be used in the authorized server.")
-        return
-
     roles_to_remove = [
         ctx.guild.get_role(role_id)
         for role_id in WHITELIST_ROLES
