@@ -218,6 +218,14 @@ async def whitelisty(ctx, user: discord.Member):
 @bot.command(name="unwhitelist")
 @commands.has_permissions(administrator=True)
 async def unwhitelist(ctx, user: discord.Member):
+    roles_to_remove = [
+        ctx.guild.get_role(role_id)
+        for role_id in WHITELIST_ROLES
+        if ctx.guild.get_role(role_id) and ctx.guild.get_role(role_id) in user.roles
+    ]
+
+    if roles_to_remove:
+        await user.remove_roles(*roles_to_remove)    
     try:
         r = await asyncio.to_thread(
             requests.post,
