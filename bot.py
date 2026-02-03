@@ -215,18 +215,9 @@ async def whitelisty(ctx, user: discord.Member):
         await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
         await ctx.send(f"✅ {user.mention} has been given the role.")
 
-@bot.command(name="dewhitelist")
+@bot.command(name="unwhitelist")
 @commands.has_permissions(administrator=True)
-async def dewhitelist(ctx, user: discord.Member):
-    roles_to_remove = [
-        ctx.guild.get_role(role_id)
-        for role_id in WHITELIST_ROLES
-        if ctx.guild.get_role(role_id) and ctx.guild.get_role(role_id) in user.roles
-    ]
-
-    if roles_to_remove:
-        await user.remove_roles(*roles_to_remove)
-
+async def unwhitelist(ctx, user: discord.Member):
     try:
         r = await asyncio.to_thread(
             requests.post,
@@ -241,9 +232,9 @@ async def dewhitelist(ctx, user: discord.Member):
         return
 
     if data.get("ok"):
-        await ctx.reply(f"✅ {user.name} has been fully dewhitelisted.")
+        await ctx.reply(f"✅ {user.name} has been removed from the whitelist.")
     else:
-        await ctx.reply(f"❌ Could not dewhitelist {user.name}.")
+        await ctx.reply(f"❌ Could not remove {user.name} from the whitelist.")
 
 @bot.command(name="resethwid")
 @commands.has_permissions(administrator=True)
