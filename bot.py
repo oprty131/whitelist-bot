@@ -213,7 +213,7 @@ async def whitelisty(ctx, user: discord.Member):
     role = ctx.guild.get_role(1458574695401132265)
     if role:
         await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
-        await ctx.send(f"✅ {user.mention} has been whitelisted and given the role.")
+        await ctx.send(f"✅ {user.mention} has been given the role.")
 
 @bot.command(name="dewhitelist")
 @commands.has_permissions(administrator=True)
@@ -246,7 +246,7 @@ async def dewhitelist(ctx, user: discord.Member):
         await ctx.reply(f"❌ Could not dewhitelist {user.name}.")
 
 @bot.tree.command(name="resethwid", description="Reset a user's HWID")
-@app_commands.default_permissions(administrator=True)
+@commands.has_permissions(administrator=True)
 async def reset_hwid(interaction: discord.Interaction,user: discord.Member):
     r = await asyncio.to_thread(
         requests.post,
