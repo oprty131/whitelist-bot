@@ -218,14 +218,6 @@ async def whitelisty(ctx, user: discord.Member):
 @bot.command(name="unwhitelist")
 @commands.has_permissions(administrator=True)
 async def unwhitelist(ctx, user: discord.Member):
-    roles_to_remove = [
-        ctx.guild.get_role(role_id)
-        for role_id in WHITELIST_ROLES
-        if ctx.guild.get_role(role_id) and ctx.guild.get_role(role_id) in user.roles
-    ]
-
-    if roles_to_remove:
-        await user.remove_roles(*roles_to_remove)    
     try:
         r = await asyncio.to_thread(
             requests.post,
@@ -246,25 +238,24 @@ async def unwhitelist(ctx, user: discord.Member):
 
 @bot.command(name="resethwid")
 @commands.has_permissions(administrator=True)
-async def reset_hwid(interaction: discord.Interaction,user: discord.Member):
-    r = await asyncio.to_thread(
-        requests.post,
-        f"{FLASK_API}/admin_reset_key",
-        json={"discord_id": str(user.id)},
-        headers={"X-Bot-Secret": BOT_SECRET},
-    )
-
-    data = r.json()
-
-    if data["ok"]:
-        await interaction.response.send_message(
-            f"✅ HWID reset for **{user.name}**"
+async def resethwid(ctx, user: discord.Member):
+    try:
+        r = await asyncio.to_thread(
+            requests.post,
+            f"{FLASK_API}/reset_key",
+            json={"discord_id": str(user.id)},
+            headers={"X-Bot-Secret": BOT_SECRET},
+            timeout=10
         )
+        data = r.json()
+    except Exception as e:
+        await ctx.reply(f"❌ Failed: {e}")
+        return
+
+    if data.get("ok"):
+        await ctx.reply(f"✅ HWID reset for **{user.name}**")
     else:
-        await interaction.response.send_message(
-            f"❌ Failed: `{data.get('reason')}`",
-            ephemeral=True
-        )
+        await ctx.reply(f"❌ Could not reset {user.name} hwid.")
         
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
