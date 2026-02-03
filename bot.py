@@ -245,7 +245,7 @@ async def dewhitelist(ctx, user: discord.Member):
     else:
         await ctx.reply(f"❌ Could not dewhitelist {user.name}.")
 
-@bot.tree.command(name="resethwid", description="Reset a user's HWID")
+@bot.command(name="resethwid")
 @commands.has_permissions(administrator=True)
 async def reset_hwid(interaction: discord.Interaction,user: discord.Member):
     r = await asyncio.to_thread(
