@@ -245,7 +245,7 @@ async def resethwid(ctx, user: discord.Member):
     try:
         r = await asyncio.to_thread(
             requests.post,
-            f"{FLASK_API}/reset_key",
+            f"{FLASK_API}/reset_timer",
             json={
                 "discord_id": str(user.id),
                 "force": True
@@ -259,7 +259,7 @@ async def resethwid(ctx, user: discord.Member):
         return
 
     if data.get("ok"):
-        await ctx.reply(f"✅ HWID reset for **{user.name}**")
+        await ctx.reply(f"✅ timer reseted for **{user.name}**")
     else:
         await ctx.reply(f"❌ Could not reset {user.name} hwid.")
         
