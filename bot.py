@@ -246,10 +246,7 @@ async def resethwid(ctx, user: discord.Member):
         r = await asyncio.to_thread(
             requests.post,
             f"{FLASK_API}/reset_timer",
-            json={
-                "discord_id": str(user.id),
-                "force": True
-            },
+            json={"discord_id": str(user.id)},
             headers={"X-Bot-Secret": BOT_SECRET},
             timeout=10
         )
@@ -259,9 +256,9 @@ async def resethwid(ctx, user: discord.Member):
         return
 
     if data.get("ok"):
-        await ctx.reply(f"✅ timer reseted for **{user.name}**")
+        await ctx.reply(f"✅ Reseted timer for **{user.name}**")
     else:
-        await ctx.reply(f"❌ Could not reset {user.name} hwid.")
+        await ctx.reply(f"❌ Could not reset timer for {user.name}")
         
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
