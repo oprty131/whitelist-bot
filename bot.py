@@ -171,7 +171,7 @@ class KeyPanel(discord.ui.View):
         await interaction.response.send_message(f"```lua\n{script}\n```", ephemeral=True)
 
     @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red, custom_id="keypanel_reset_hwid")
-    async def reset(self, interaction: discord.Interation, button: discord.ui.Button):
+    async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not user_has_whitelist_role(interaction.user):
             await interaction.response.send_message(
                 "❌ You don’t have permission to use this command.",
@@ -239,26 +239,42 @@ async def dewhitelist(ctx, user: discord.Member):
     else:
         await ctx.reply(f"❌ Could not remove {user.name} from the whitelist.")
 
-@bot.command(name="resethwid")
-@commands.has_permissions(administrator=True)
-async def resethwid(ctx, user: discord.Member):
-    try:
-        r = await asyncio.to_thread(
-            requests.post,
-            f"{FLASK_API}/reset_timer",
-            json={"discord_id": str(user.id)},
-            headers={"X-Bot-Secret": BOT_SECRET},
-            timeout=10
-        )
-        data = r.json()
-    except Exception as e:
-        await ctx.reply(f"❌ Failed: {e}")
-        return
+@app.route("/reset_key", methods=["POST"])
+def reset_key():
+    if request.headers.get("X-Bot-Secret") != BOT_SECRET:
+        return unauthorized()
 
-    if data.get("ok"):
-        await ctx.reply(f"✅ Reseted timer for **{user.name}**")
-    else:
-        await ctx.reply(f"❌ Could not reset timer for {user.name}")
+    data = get_json()
+    discord_id = data.get("discord_id")
+    force = data.get("force", False)
+
+    if not discord_id:
+        return jsonify({"ok": False, "reason": "missing_discord_id"}), 400
+
+    now = int(time.time())
+
+    with keys_lock:
+        keys = load_keys()
+
+        for key, info in keys.items():
+            if info["discord_id"] == discord_id:
+                last = info.get("last_reset", 0)
+
+                if not force and now - last < COOLDOWN:
+                    remaining = COOLDOWN - (now - last)
+                    return jsonify({
+                        "ok": False,
+                        "reason": "cooldown",
+                        "remaining_seconds": remaining,
+                        "reset_timestamp": now + remaining
+                    })
+
+                info["hwid"] = None
+                info["last_reset"] = now
+                save_keys(keys)
+                return jsonify({"ok": True})
+
+    return jsonify({"ok": False, "reason": "no_key"})
         
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
