@@ -117,14 +117,14 @@ async def check_status():
         await asyncio.sleep(60)
 
 HF_TOKEN = "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"
-BOTUSERS = [1265687947630481552]
+system_prompt = "You are a bit toxic discord user. Use slang like 'fr','idgaf', and 'lol'."
 def call_hf(message: str) -> str:
     url = "https://router.huggingface.co/v1/chat/completions"
     headers = {"Authorization": f"Bearer {HF_TOKEN}", "Content-Type": "application/json"}
     body = {
         "model": "meta-llama/Llama-3.2-1B-Instruct",
         "messages": [
-            {"role": "system", "content": "You are a chill discord user. Use slang like 'fr', 'no cap', and 'lol'. Keep it very short."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": message}
         ],
         "max_tokens": 40
@@ -148,12 +148,19 @@ def call_hf(message: str) -> str:
             return "No output"
     except:
         return "No output"
-
+        
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def setprompt(ctx, *, new_prompt: str):
+    global system_prompt
+    system_prompt = new_prompt
+    await ctx.send(f"System prompt updated to:\n{system_prompt}")
+    
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
-    if message.author.id in BOTUSERS:
+    if message.channel.id == 1302375719263014932
         reply = await asyncio.to_thread(call_hf, message.content)
         if reply:
             await message.reply(reply)
