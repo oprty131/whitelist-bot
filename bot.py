@@ -116,6 +116,48 @@ async def check_status():
 
         await asyncio.sleep(60)
 
+HF_TOKEN = "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"
+BOTUSERS = [1265687947630481552]
+def call_hf(message: str) -> str:
+    url = "https://router.huggingface.co/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}", "Content-Type": "application/json"}
+    body = {
+        "model": "meta-llama/Llama-3.2-1B-Instruct",
+        "messages": [
+            {"role": "system", "content": "You are a chill discord user. Use slang like 'fr', 'no cap', and 'lol'. Keep it very short."},
+            {"role": "user", "content": message}
+        ],
+        "max_tokens": 40
+    }
+    try:
+        response = requests.post(url, headers=headers, json=body, timeout=20)
+        data = response.json()
+    except:
+        return "Error"
+
+    if "error" in data:
+        return data["error"]
+
+    try:
+        content = data["choices"][0]["message"]["content"]
+        if isinstance(content, list):
+            return "".join([c.get("text","") for c in content if c.get("type") == "output_text"])
+        elif isinstance(content, str):
+            return content
+        else:
+            return "No output"
+    except:
+        return "No output"
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+    if message.author.id in BOTUSERS:
+        reply = await asyncio.to_thread(call_hf, message.content)
+        if reply:
+            await message.reply(reply)
+            
 FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
 WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
