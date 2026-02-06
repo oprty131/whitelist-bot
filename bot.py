@@ -160,7 +160,7 @@ async def setprompt(ctx, *, new_prompt: str):
 async def on_message(message):
     if message.author.bot:
         return
-    if message.channel.id == 1302375719263014932
+    if message.channel.id == 1302375719263014932:
         reply = await asyncio.to_thread(call_hf, message.content)
         if reply:
             await message.reply(reply)
