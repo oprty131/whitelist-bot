@@ -138,7 +138,7 @@ def user_has_whitelist_role(member: discord.Member):
 class KeyPanel(discord.ui.View):
     timeout = None
 
-    @discord.ui.button(label="Get Script", style=discord.ButtonStyle.green)
+    @discord.ui.button(label="Get Script", style=discord.ButtonStyle.green, custom_id="keypanel_get_script")
     async def generate(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not user_has_whitelist_role(interaction.user):
             await interaction.response.send_message(
@@ -170,8 +170,8 @@ class KeyPanel(discord.ui.View):
         script = f'getgenv().Key = "{key}"\nloadstring(game:HttpGet("https://peeky.pythonanywhere.com/jjs"))()'
         await interaction.response.send_message(f"```lua\n{script}\n```", ephemeral=True)
 
-    @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red)
-    async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red, custom_id="keypanel_reset_hwid")
+    async def reset(self, interaction: discord.Interation, button: discord.ui.Button):
         if not user_has_whitelist_role(interaction.user):
             await interaction.response.send_message(
                 "❌ You don’t have permission to use this command.",
@@ -191,7 +191,10 @@ class KeyPanel(discord.ui.View):
         if data.get("ok"):
             await interaction.response.send_message("✅ Your HWID has been reset.", ephemeral=True)
         elif data.get("reason") == "cooldown":
-            await interaction.response.send_message(f"You can reset your HWID <t:{data.get('reset_timestamp')}:R>.", ephemeral=True)            
+            await interaction.response.send_message(
+                f"You can reset your HWID <t:{data.get('reset_timestamp')}:R>.",
+                ephemeral=True
+            )
         elif data.get("reason") == "no_key":
             await interaction.response.send_message("❌ You don’t have a key.", ephemeral=True)
         else:
@@ -215,13 +218,13 @@ async def whitelisty(ctx, user: discord.Member):
         await user.add_roles(role, reason=f"Whitelisted by {ctx.author}")
         await ctx.send(f"✅ {user.mention} has been given the role.")
 
-@bot.command(name="unwhitelist")
+@bot.command(name="dewhitelist")
 @commands.has_permissions(administrator=True)
-async def unwhitelist(ctx, user: discord.Member):
+async def dewhitelist(ctx, user: discord.Member):
     try:
         r = await asyncio.to_thread(
             requests.post,
-            f"{FLASK_API}/unwhitelist",
+            f"{FLASK_API}/dewhitelist",
             json={"discord_id": str(user.id)},
             headers={"X-Bot-Secret": BOT_SECRET},
             timeout=10
@@ -243,7 +246,10 @@ async def resethwid(ctx, user: discord.Member):
         r = await asyncio.to_thread(
             requests.post,
             f"{FLASK_API}/reset_key",
-            json={"discord_id": str(user.id)},
+            json={
+                "discord_id": str(user.id),
+                "force": True
+            },
             headers={"X-Bot-Secret": BOT_SECRET},
             timeout=10
         )
