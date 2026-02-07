@@ -116,7 +116,7 @@ async def check_status():
 
         await asyncio.sleep(60)
 
-HF_TOKEN = "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"
+HF_TOKEN = "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"
 system_prompt = "You are a bit toxic discord user. Use slang like 'fr','idgaf', and 'lol'."
 def call_hf(message: str) -> str:
     url = "https://router.huggingface.co/v1/chat/completions"
