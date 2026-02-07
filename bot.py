@@ -118,7 +118,7 @@ async def check_status():
             
 FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
-WHITELIST_ROLES = [1266141011739152467,1458574695401132265]
+WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
 
 def format_duration(seconds: int):
     h = seconds // 3600
@@ -131,31 +131,7 @@ def format_duration(seconds: int):
     if s: parts.append(f"{s}s")
 
     return " ".join(parts)
-    
-PREMIUM_ROLE_NAME = "Premium"
-BUYERS_ROLE_NAME = "Buyers"
-@bot.command(name="givebuyers")
-@commands.has_permissions(manage_roles=True)
-async def givebuyers(ctx):
-    guild = ctx.guild
-    premium_role = discord.utils.get(guild.roles, name=PREMIUM_ROLE_NAME)
-    buyers_role = discord.utils.get(guild.roles, name=BUYERS_ROLE_NAME)
 
-    if not premium_role or not buyers_role:
-        await ctx.send("Roles not found!")
-        return
-
-    count = 0
-    for member in guild.members:
-        if premium_role in member.roles and buyers_role not in member.roles:
-            try:
-                await member.add_roles(buyers_role, reason="Has Premium role")
-                count += 1
-            except Exception as e:
-                print(f"Failed for {member.name}: {e}")
-
-    await ctx.send(f"Added Buyers role to {count} members with Premium role.")
-    
 def user_has_whitelist_role(member: discord.Member):
     return any(role.id in WHITELIST_ROLES for role in member.roles)
     
