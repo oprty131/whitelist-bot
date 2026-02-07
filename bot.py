@@ -134,7 +134,7 @@ def format_duration(seconds: int):
     
 PREMIUM_ROLE_NAME = "Premium"
 BUYERS_ROLE_NAME = "Buyers"
-@bot.command(name="resethwid")
+@bot.command(name="givebuyers")
 @commands.has_permissions(manage_roles=True)
 async def givebuyers(ctx):
     guild = ctx.guild
