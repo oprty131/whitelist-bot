@@ -103,10 +103,8 @@ async def check_status():
 
             if "it's just you" in text:
                 current_status = "UP"
-            elif "looks down" in text:
+            elif "down" in text:
                 current_status = "DOWN"
-            else:
-                current_status = "UNKNOWN"
 
             if current_status != previous_status:
                 previous_status = current_status
