@@ -83,6 +83,7 @@ async def on_ready():
     bot.add_view(KeyPanel())    
     await bot.tree.sync()
     await auto_restore_database(bot)
+    bot.loop.create_task(check_status())
     print(f"Bot is online as {bot.user}")
 
 previous_status = None
