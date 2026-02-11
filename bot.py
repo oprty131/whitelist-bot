@@ -273,12 +273,10 @@ async def obf(ctx, *args):
     content = None
     args = list(args)
     preset = "Obf R2"
-    upload = False
-    if "upload" in args:
-        upload = True
-        args.remove("upload")
+
     if args:
-        preset = args[0]
+        preset = " ".join(args)
+
     if ctx.message.attachments:
         attachment = ctx.message.attachments[0]
         content = (await attachment.read()).decode("utf-8")
@@ -287,9 +285,11 @@ async def obf(ctx, *args):
         for word in ["!obf"] + args:
             content = content.replace(word, "", 1)
         content = content.strip()
+
     if not content:
         await ctx.send("No script provided.")
         return
+
     response = requests.post(
         "https://luacrack.site/",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -301,24 +301,15 @@ async def obf(ctx, *args):
             "output": "console"
         }
     )
+
     filename = f"{random_name()}.txt"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(response.text)
-    if upload:
-        requests.post(
-            "https://peeky.pythonanywhere.com/edit/jjsxenotest",
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "X-Bypass-Auth": "supersecretbypass123"
-            },
-            data={"content": response.text}
-        )
-        await ctx.send(f"Uploaded successfully using preset `{preset}`.")
-    else:
-        await ctx.send(
-            content=f"Preset used: `{preset}`",
-            file=discord.File(filename)
-        )
+
+    await ctx.send(
+        content=f"Preset used: `{preset}`",
+        file=discord.File(filename)
+    )
 
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
