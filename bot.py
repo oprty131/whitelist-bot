@@ -268,15 +268,8 @@ def random_name(length=10):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
 @bot.command(name="obf")
+@commands.has_permissions(administrator=True)
 async def obf(ctx, *args):
-    if not isinstance(ctx.channel, discord.DMChannel):
-        await ctx.send("This command only works in DMs.")
-        return
-
-    if ctx.author.id != 1265687947630481552:
-        await ctx.send("You are not allowed to use this command.")
-        return
-
     content = None
     args = list(args)
     preset = "Obf R2"
@@ -310,13 +303,13 @@ async def obf(ctx, *args):
     )
 
     body = response.text
-
+    
     body = re.sub(
         r"(--// This file was created by XHider.*)", 
         r"-- \1", 
         body
     )
-
+    
     filename = f"{random_name()}.txt"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(body)
