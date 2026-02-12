@@ -311,7 +311,7 @@ async def obf(ctx, *args):
         file=discord.File(filename)
     )
     
-@client.event
+@bot.event
 async def on_message(message):
     if message.author.bot:
         return
