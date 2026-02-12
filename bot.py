@@ -322,14 +322,14 @@ async def on_message(message):
     if has_text and not has_attachments:
         try:
             await message.delete()
-            await message.channel.send(f"{message.author.mention} Only files allowed.", delete_after=10)
+            await message.channel.send(f"{message.author.mention} Only files allowed.", delete_after=3)
         except discord.Forbidden:
             pass
         return
     if not has_text and has_attachments:
         try:
             await message.delete()
-            await message.channel.send(f"{message.author.mention} Please give information about the build.", delete_after=10)
+            await message.channel.send(f"{message.author.mention} Please give information about the build.", delete_after=3)
         except discord.Forbidden:
             pass
         return
@@ -338,7 +338,7 @@ async def on_message(message):
             if not attachment.filename.lower().endswith(".json"):
                 try:
                     await message.delete()
-                    await message.channel.send(f"{message.author.mention} Only JSON files are allowed.", delete_after=10)
+                    await message.channel.send(f"{message.author.mention} Only JSON files are allowed.", delete_after=3)
                 except discord.Forbidden:
                     pass
                 return
