@@ -310,38 +310,6 @@ async def obf(ctx, *args):
         content=f"Preset used: `{preset}`",
         file=discord.File(filename)
     )
-    
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-    if message.channel.id != 1471537376722550805:
-        return
-    has_text = message.content.strip() != ""
-    has_attachments = len(message.attachments) > 0
-    if has_text and not has_attachments:
-        try:
-            await message.delete()
-            await message.channel.send(f"{message.author.mention} Only files allowed.", delete_after=3)
-        except discord.Forbidden:
-            pass
-        return
-    if not has_text and has_attachments:
-        try:
-            await message.delete()
-            await message.channel.send(f"{message.author.mention} Please give information about the build.", delete_after=3)
-        except discord.Forbidden:
-            pass
-        return
-    if has_attachments:
-        for attachment in message.attachments:
-            if not attachment.filename.lower().endswith(".json"):
-                try:
-                    await message.delete()
-                    await message.channel.send(f"{message.author.mention} Only JSON files are allowed.", delete_after=3)
-                except discord.Forbidden:
-                    pass
-                return
                 
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
