@@ -85,7 +85,6 @@ async def on_ready():
     bot.add_view(KeyPanel())    
     await bot.tree.sync()
     await auto_restore_database(bot)
-    await bot.get_channel(1302375719263014932).send("Click below to verify your gamepass:", view=CheckView())
     bot.loop.create_task(check_status())
     print(f"Bot is online as {bot.user}")
 
@@ -313,18 +312,17 @@ async def obf(ctx, *args):
     )
 
 ROBLOSECURITY = os.getenv("ROBLOXTOKEN")
-GAMEPASS_ID = 123456789
 
 HEADERS = {
     "Content-Type": "application/json",
     "Cookie": f".ROBLOSECURITY={ROBLOSECURITY}"
 }
 
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix="!", intents=intents)
+
 def get_my_user_id():
-    r = requests.get(
-        "https://users.roblox.com/v1/users/authenticated",
-        headers=HEADERS
-    )
+    r = requests.get("https://users.roblox.com/v1/users/authenticated", headers=HEADERS)
     return r.json()["id"]
 
 def get_user_id_from_username(username):
@@ -337,13 +335,16 @@ def get_user_id_from_username(username):
         return data[0]["id"]
     return None
 
-def scan_purchases():
-    user_id = get_my_user_id()
+def check_gamepass(username):
+    user_id = get_user_id_from_username(username)
+    if not user_id:
+        return None
+
+    my_id = get_my_user_id()
     cursor = None
-    buyers = set()
 
     while True:
-        url = f"https://economy.roblox.com/v2/users/{user_id}/transactions?transactionType=Sale&limit=100"
+        url = f"https://economy.roblox.com/v2/users/{my_id}/transactions?transactionType=Sale&limit=100"
         if cursor:
             url += f"&cursor={cursor}"
 
@@ -351,56 +352,26 @@ def scan_purchases():
         body = r.json()
 
         for tx in body.get("data", []):
-            if tx["details"]["type"] == "GamePass":
-                if tx["details"]["id"] == GAMEPASS_ID:
-                    buyers.add(tx["agent"]["id"])
+            if tx["details"]["type"] == "GamePass" and tx["details"]["id"] == 840911666:
+                if tx["agent"]["id"] == user_id:
+                    return True
 
         cursor = body.get("nextPageCursor")
         if not cursor:
             break
 
-    return buyers
+    return False
 
-owned_users = scan_purchases()  # Set of Roblox UserIds who already own the gamepass
-
-class UsernameModal(discord.ui.Modal, title="Verify Gamepass"):
-    username = discord.ui.TextInput(label="Enter your Roblox Username")
-
-    async def on_submit(self, interaction: discord.Interaction):
-        discord_id = str(interaction.user.id)
-        user_id = get_user_id_from_username(str(self.username))
-        if not user_id:
-            await interaction.response.send_message("User not found.", ephemeral=True)
-            return
-
-        if discord_id in mapping:
-            await interaction.response.send_message(
-                f"You have already linked Roblox account: {mapping[discord_id]}. Cannot link another.",
-                ephemeral=True
-            )
-            return
-
-        if user_id in owned_users:
-            role = interaction.guild.get_role(1266420174836207717)
-            if role and role not in interaction.user.roles:
-                await interaction.user.add_roles(role)
-
-            mapping[discord_id] = str(user_id)
-            save_mapping(mapping)
-            await send_backup_file(bot)
-
-            await interaction.response.send_message(
-                f"Gamepass verified! Role assigned and account linked.", ephemeral=True
-            )
-        else:
-            await interaction.response.send_message(
-                "You do not own the required gamepass.", ephemeral=True
-            )        
-
-class CheckView(discord.ui.View):
-    @discord.ui.button(label="Verify Gamepass", style=discord.ButtonStyle.green)
-    async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_modal(UsernameModal())
+@bot.command(name="check")
+@commands.has_permissions(administrator=True)
+async def check(ctx, username: str):
+    result = check_gamepass(username)
+    if result is None:
+        await ctx.send(f"❌ User `{username}` not found.")
+    elif result:
+        await ctx.send(f"✅ `{username}` HAS the gamepass.")
+    else:
+        await ctx.send(f"❌ `{username}` DOES NOT HAVE the gamepass.")
         
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
