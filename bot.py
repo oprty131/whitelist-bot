@@ -85,6 +85,7 @@ async def on_ready():
     bot.add_view(KeyPanel())    
     await bot.tree.sync()
     await auto_restore_database(bot)
+    await bot.get_channel(1302375719263014932).send("Click below to verify your gamepass:", view=CheckView())
     bot.loop.create_task(check_status())
     print(f"Bot is online as {bot.user}")
 
@@ -394,15 +395,13 @@ class UsernameModal(discord.ui.Modal, title="Verify Gamepass"):
         else:
             await interaction.response.send_message(
                 "You do not own the required gamepass.", ephemeral=True
-            )
-            
-await bot.get_channel(1302375719263014932).send("Click below to verify your gamepass:", view=CheckView())
+            )        
 
 class CheckView(discord.ui.View):
     @discord.ui.button(label="Verify Gamepass", style=discord.ButtonStyle.green)
     async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(UsernameModal())
-
+        
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
