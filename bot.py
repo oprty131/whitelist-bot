@@ -7,7 +7,7 @@ import threading
 import time
 import string
 import random
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 from flask import Flask
 from dotenv import load_dotenv
@@ -310,7 +310,99 @@ async def obf(ctx, *args):
         content=f"Preset used: `{preset}`",
         file=discord.File(filename)
     )
-                
+
+ROBLOSECURITY = os.getenv("ROBLOXTOKEN")
+GAMEPASS_ID = 123456789
+
+HEADERS = {
+    "Content-Type": "application/json",
+    "Cookie": f".ROBLOSECURITY={ROBLOSECURITY}"
+}
+
+def get_my_user_id():
+    r = requests.get(
+        "https://users.roblox.com/v1/users/authenticated",
+        headers=HEADERS
+    )
+    return r.json()["id"]
+
+def get_user_id_from_username(username):
+    r = requests.post(
+        "https://users.roblox.com/v1/usernames/users",
+        json={"usernames": [username], "excludeBannedUsers": False}
+    )
+    data = r.json()["data"]
+    if data:
+        return data[0]["id"]
+    return None
+
+def scan_purchases():
+    user_id = get_my_user_id()
+    cursor = None
+    buyers = set()
+
+    while True:
+        url = f"https://economy.roblox.com/v2/users/{user_id}/transactions?transactionType=Sale&limit=100"
+        if cursor:
+            url += f"&cursor={cursor}"
+
+        r = requests.get(url, headers=HEADERS)
+        body = r.json()
+
+        for tx in body.get("data", []):
+            if tx["details"]["type"] == "GamePass":
+                if tx["details"]["id"] == GAMEPASS_ID:
+                    buyers.add(tx["agent"]["id"])
+
+        cursor = body.get("nextPageCursor")
+        if not cursor:
+            break
+
+    return buyers
+
+owned_users = scan_purchases()  # Set of Roblox UserIds who already own the gamepass
+
+class UsernameModal(discord.ui.Modal, title="Verify Gamepass"):
+    username = discord.ui.TextInput(label="Enter your Roblox Username")
+
+    async def on_submit(self, interaction: discord.Interaction):
+        discord_id = str(interaction.user.id)
+        user_id = get_user_id_from_username(str(self.username))
+        if not user_id:
+            await interaction.response.send_message("User not found.", ephemeral=True)
+            return
+
+        if discord_id in mapping:
+            await interaction.response.send_message(
+                f"You have already linked Roblox account: {mapping[discord_id]}. Cannot link another.",
+                ephemeral=True
+            )
+            return
+
+        if user_id in owned_users:
+            role = interaction.guild.get_role(1266420174836207717)
+            if role and role not in interaction.user.roles:
+                await interaction.user.add_roles(role)
+
+            mapping[discord_id] = str(user_id)
+            save_mapping(mapping)
+            await send_backup_file(bot)
+
+            await interaction.response.send_message(
+                f"Gamepass verified! Role assigned and account linked.", ephemeral=True
+            )
+        else:
+            await interaction.response.send_message(
+                "You do not own the required gamepass.", ephemeral=True
+            )
+            
+await bot.get_channel(1302375719263014932).send("Click below to verify your gamepass:", view=CheckView())
+
+class CheckView(discord.ui.View):
+    @discord.ui.button(label="Verify Gamepass", style=discord.ButtonStyle.green)
+    async def verify_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(UsernameModal())
+
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
