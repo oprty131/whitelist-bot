@@ -318,9 +318,6 @@ HEADERS = {
     "Cookie": f".ROBLOSECURITY={ROBLOSECURITY}"
 }
 
-intents = discord.Intents.default()
-bot = commands.Bot(command_prefix="!", intents=intents)
-
 def get_my_user_id():
     r = requests.get("https://users.roblox.com/v1/users/authenticated", headers=HEADERS)
     return r.json()["id"]
