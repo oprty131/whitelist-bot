@@ -371,7 +371,7 @@ def check_gamepass(username):
             if tx["details"]["type"] == "GamePass" and tx["details"]["id"] == 840911666:
                 if tx["agent"]["id"] == user_id:
                     
-                    return datetime.strptime(tx["created"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d %b %Y • %H:%M UTC")
+                    return int(datetime.strptime(tx["created"], "%Y-%m-%dT%H:%M:%S.%fZ").timestamp())
 
         cursor = body.get("nextPageCursor")
         if not cursor:
@@ -386,7 +386,7 @@ async def check(ctx, username: str):
     if result is None:
         await ctx.send(f"❌ User `{username}` not found.")
     elif result:
-        await ctx.send(f"✅ `{username}` HAS the gamepass ({result})")
+        await ctx.send(f"✅ `{username}` HAS the gamepass (<t:{result}:F>)")
     else:
         await ctx.send(f"❌ `{username}` DOES NOT HAVE the gamepass.")
         
