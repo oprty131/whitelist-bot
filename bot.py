@@ -10,6 +10,7 @@ import random
 from discord.ext import commands, tasks
 from discord import app_commands
 from flask import Flask
+from datetime import datetime
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 
@@ -369,7 +370,8 @@ def check_gamepass(username):
         for tx in body.get("data", []):
             if tx["details"]["type"] == "GamePass" and tx["details"]["id"] == 840911666:
                 if tx["agent"]["id"] == user_id:
-                    return True
+                    
+                    return datetime.strptime(tx["created"], "%Y-%m-%dT%H:%M:%S.%fZ").strftime("%d %b %Y • %H:%M UTC")
 
         cursor = body.get("nextPageCursor")
         if not cursor:
@@ -384,7 +386,7 @@ async def check(ctx, username: str):
     if result is None:
         await ctx.send(f"❌ User `{username}` not found.")
     elif result:
-        await ctx.send(f"✅ `{username}` HAS the gamepass.")
+        await ctx.send(f"✅ `{username}` HAS the gamepass ({result})")
     else:
         await ctx.send(f"❌ `{username}` DOES NOT HAVE the gamepass.")
         
