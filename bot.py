@@ -96,7 +96,7 @@ async def restore_permissions():
 
     save_cooldowns()
 
-COOLDOWN_SECONDS = 86400
+COOLDOWN_SECONDS = 7200
 DATA_FILE = "forum_cooldowns.json"
 
 if os.path.exists(DATA_FILE):
@@ -105,16 +105,11 @@ if os.path.exists(DATA_FILE):
 else:
     cooldowns = {}
 
-def save_cooldowns():
-    with open(DATA_FILE, "w") as f:
-        json.dump(cooldowns, f)
-
 @bot.event
 async def on_thread_create(thread):
     if not isinstance(thread.parent, discord.ForumChannel):
         return
 
-    forum = thread.parent
     user = thread.owner
     if user is None:
         return
@@ -124,49 +119,17 @@ async def on_thread_create(thread):
 
     if user_id in cooldowns:
         if now - cooldowns[user_id] < COOLDOWN_SECONDS:
-            try:
-                await thread.delete()
-            except:
-                pass
+            await thread.delete()
             return
 
     cooldowns[user_id] = now
-    save_cooldowns()
 
-    overwrite = forum.overwrites_for(user)
-    overwrite.send_messages = False
-
-    try:
-        await forum.set_permissions(user, overwrite=overwrite)
-    except:
-        pass
-
-@tasks.loop(minutes=5)
-async def restore_permissions():
-    now = int(time.time())
-    to_remove = []
-
-    for user_id, timestamp in cooldowns.items():
-        if now - timestamp >= COOLDOWN_SECONDS:
-            guild = bot.get_guild(GUILD_ID)
-            if guild:
-                member = guild.get_member(int(user_id))
-                if member:
-                    for channel in guild.channels:
-                        if isinstance(channel, discord.ForumChannel):
-                            await channel.set_permissions(member, overwrite=None)
-
-            to_remove.append(user_id)
-
-    for user_id in to_remove:
-        cooldowns.pop(user_id)
-
-    save_cooldowns()
+    with open(DATA_FILE, "w") as f:
+        json.dump(cooldowns, f)
     
 @bot.event
 async def on_ready():
     bot.add_view(KeyPanel())  
-    restore_permissions.start()
     await bot.tree.sync()
     await auto_restore_database(bot)
     bot.loop.create_task(check_status())
