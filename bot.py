@@ -88,34 +88,36 @@ async def on_ready():
     bot.loop.create_task(check_status())
     print(f"Bot is online as {bot.user}")
 
-previous_status = None
+COOLDOWN_SECONDS = 86400
+DATA_FILE = "forum_cooldowns.json"
 
-async def check_status():
-    global previous_status
+if os.path.exists(DATA_FILE):
+    with open(DATA_FILE, "r") as f:
+        cooldowns = json.load(f)
+else:
+    cooldowns = {}
 
-    await bot.wait_until_ready()
-    channel = bot.get_channel(1302378980019667097)
+@bot.event
+async def on_thread_create(thread):
+    if not isinstance(thread.parent, discord.ForumChannel):
+        return
 
-    while not bot.is_closed():
-        try:
-            url = "https://downforeveryoneorjustme.com/pythonanywhere.com"
-            r = requests.get(url, timeout=10)
-            soup = BeautifulSoup(r.text, "html.parser")
-            text = soup.get_text().lower()
+    user = thread.owner
+    if user is None:
+        return
 
-            if "it's just you" in text:
-                current_status = "UP"
-            elif "down" in text:
-                current_status = "DOWN"
+    now = int(time.time())
+    user_id = str(user.id)
 
-            if current_status != previous_status:
-                previous_status = current_status
-                await channel.send(f"🔔 **TBO is:** `{current_status}`")
+    if user_id in cooldowns:
+        if now - cooldowns[user_id] < COOLDOWN_SECONDS:
+            await thread.delete()
+            return
 
-        except Exception as e:
-            print("Error:", e)
+    cooldowns[user_id] = now
 
-        await asyncio.sleep(60)
+    with open(DATA_FILE, "w") as f:
+        json.dump(cooldowns, f)
             
 FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
