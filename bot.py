@@ -80,22 +80,6 @@ class CustomMessageButtonView(discord.ui.View):
     @discord.ui.button(label="Send Message", style=discord.ButtonStyle.primary)
     async def send_custom_message(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(self.message, ephemeral=False)
-@tasks.loop(minutes=5)
-async def restore_permissions():
-    now = int(time.time())
-    guild = bot.get_guild(GUILD_ID)
-
-    for user_id in list(cooldowns.keys()):
-        if now - cooldowns[user_id] >= COOLDOWN_SECONDS:
-            member = guild.get_member(int(user_id))
-            if member:
-                for channel in guild.channels:
-                    if isinstance(channel, discord.ForumChannel):
-                        await channel.set_permissions(member, overwrite=None)
-
-            del cooldowns[user_id]
-
-    save_cooldowns()
 
 COOLDOWN_SECONDS = 7200
 DATA_FILE = "forum_cooldowns.json"
