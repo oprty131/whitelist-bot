@@ -7,6 +7,7 @@ import threading
 import time
 import string
 import random
+import logging
 from discord.ext import commands, tasks
 from discord import app_commands
 from flask import Flask
@@ -26,6 +27,15 @@ def home():
 
 def run_flask():
     app.run(host='0.0.0.0', port=8080)
+    
+logger = logging.getLogger("discord")
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter(
+    "%(asctime)s:%(levelname)s:%(name)s: %(message)s"
+))
+logger.addHandler(handler)
 
 MAPPING_FILE = "mapping.json"
 WHITELIST_BACKUP_CHANNEL_ID = 1319770254347599882
