@@ -96,7 +96,6 @@ async def on_ready():
     bot.add_view(KeyPanel())  
     await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
     await auto_restore_database(bot)
-    bot.loop.create_task(check_status())
     print(f"Bot is online as {bot.user}")
             
 FLASK_API = "https://okei.pythonanywhere.com"
