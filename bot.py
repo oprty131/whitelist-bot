@@ -81,37 +81,6 @@ class CustomMessageButtonView(discord.ui.View):
     async def send_custom_message(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(self.message, ephemeral=False)
 
-COOLDOWN_SECONDS = 7200
-DATA_FILE = "forum_cooldowns.json"
-
-if os.path.exists(DATA_FILE):
-    with open(DATA_FILE, "r") as f:
-        cooldowns = json.load(f)
-else:
-    cooldowns = {}
-
-@bot.event
-async def on_thread_create(thread):
-    if not isinstance(thread.parent, discord.ForumChannel):
-        return
-
-    user = thread.owner
-    if user is None:
-        return
-
-    now = int(time.time())
-    user_id = str(user.id)
-
-    if user_id in cooldowns:
-        if now - cooldowns[user_id] < COOLDOWN_SECONDS:
-            await thread.delete()
-            return
-
-    cooldowns[user_id] = now
-
-    with open(DATA_FILE, "w") as f:
-        json.dump(cooldowns, f)
-    
 @bot.event
 async def on_ready():
     bot.add_view(KeyPanel())  
