@@ -355,14 +355,6 @@ async def check(ctx, username: str):
 @bot.tree.command(name="raidbutton", description="Send a custom message with a button")
 @app_commands.describe(message="The message to send when the button is pressed")
 async def say_command(interaction: discord.Interaction, message: str):
-    if interaction.guild_id != GUILD_ID:
-        await interaction.response.send_message("❌ This command can only be used in the authorized server.", ephemeral=True)
-        return
-    member = interaction.guild.get_member(interaction.user.id)
-    if not member or not user_has_role(member, ROLE_ID):
-        await interaction.response.send_message("❌ You don't have the required role to use this command.", ephemeral=True)
-        return
-
     view = CustomMessageButtonView(message)
     await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
     
