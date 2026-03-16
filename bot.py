@@ -131,10 +131,11 @@ class KeyPanel(discord.ui.View):
 
         r = await asyncio.to_thread(
             requests.post,
-            f"{FLASK_API}/create_key",
+            f"{FLASK_API}/generate_key",
             json={
                 "discord_id": str(interaction.user.id),
-                "discord_username": interaction.user.name
+                "discord_username": interaction.user.name,
+                "forever": True
             },
             headers={"X-Bot-Secret": BOT_SECRET},
             timeout=10
