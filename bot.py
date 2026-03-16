@@ -98,7 +98,7 @@ async def on_ready():
     await auto_restore_database(bot)
     print(f"Bot is online as {bot.user}")
             
-FLASK_API = "https://okei.pythonanywhere.com"
+FLASK_API = "https://peeky.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
 WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
 
