@@ -352,13 +352,7 @@ async def check(ctx, username: str):
         await ctx.send(f"✅ `{username}` HAS the gamepass (<t:{result}:F>)")
     else:
         await ctx.send(f"❌ `{username}` DOES NOT HAVE the gamepass.")
-        
-@bot.tree.command(name="raidbutton", description="Send a custom message with a button")
-@app_commands.describe(message="The message to send when the button is pressed")
-async def say_command(interaction: discord.Interaction, message: str):
-    view = CustomMessageButtonView(message)
-    await interaction.response.send_message("Click the button to send your message.", view=view, ephemeral=True)
-    
+            
 @bot.tree.command(name="codex", description="Latest Codex News")
 async def codex(interaction: discord.Interaction):
     channel = bot.get_channel(1402685581691060306)
