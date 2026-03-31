@@ -98,9 +98,17 @@ async def on_ready():
     await auto_restore_database(bot)
     print(f"Bot is online as {bot.user}")
     
+VC_CHANNEL = 1302379068217491516
+
 @bot.event
 async def on_message(message):
-    if not message.author.bot and message.channel.id == 1302379068217491516:
+    if not message.author.bot and message.channel.id == VC_CHANNEL:
+        
+        vc_channel = bot.get_channel(VC_CHANNEL)
+        if isinstance(vc_channel, discord.VoiceChannel):
+            if message.author in vc_channel.members:
+                return
+
         image_count = sum(
             1 for a in message.attachments
             if a.content_type and a.content_type.startswith("image")
@@ -110,18 +118,18 @@ async def on_message(message):
             try:
                 try:
                     await message.author.send(
-                       f"You were temporarily banned because you were suspected as a hacked account. "
-                       f"If this was a mistake, you can rejoin here: https://discord.gg/TBO"
+                        "You were temporarily banned because you were suspected as a hacked account. "
+                        "If this was a mistake, you can rejoin here: https://discord.gg/TBO"
                     )
                 except:
                     pass
 
                 await message.guild.ban(
                     message.author,
-                    reason="Suspected as hacked account",
+                    reason="Hacked account suspected",
                     delete_message_seconds=600
                 )
-                await asyncio.sleep(0.7)
+                await asyncio.sleep(1)
                 await message.guild.unban(message.author)
 
             except:
