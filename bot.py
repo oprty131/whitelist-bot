@@ -103,7 +103,9 @@ VC_CHANNEL = 1302379068217491516
 @bot.event
 async def on_message(message):
     if not message.author.bot and message.channel.id == VC_CHANNEL:
-        
+        if message.author.guild_permissions.administrator:
+            return
+            
         vc_channel = bot.get_channel(VC_CHANNEL)
         if isinstance(vc_channel, discord.VoiceChannel):
             if message.author in vc_channel.members:
