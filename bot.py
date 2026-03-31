@@ -100,7 +100,7 @@ async def on_ready():
     
 @bot.event
 async def on_message(message):
-    if not message.author.bot and message.channel.id == 123456789012345678:  # hardcoded channel ID
+    if not message.author.bot and message.channel.id == 1302379068217491516:
         image_count = sum(
             1 for a in message.attachments
             if a.content_type and a.content_type.startswith("image")
