@@ -3,6 +3,7 @@ import os
 import requests
 import asyncio 
 import json
+import threading
 import time
 import string
 import random
@@ -23,6 +24,9 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot is alive!", 200
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080)
     
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
@@ -694,6 +698,7 @@ async def check(interaction: discord.Interaction):
 token = os.getenv("TOKEN")
 if not token:
     raise ValueError("TOKEN not set in .env.")
-    
-app.run(host='0.0.0.0', port=8080)
+
+flask_thread = threading.Thread(target=run_flask)
+flask_thread.start()
 bot.run(token)
