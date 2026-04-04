@@ -23,9 +23,6 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return "Bot is alive!", 200
-
-def run_flask():
-    app.run(host='0.0.0.0', port=8080)
     
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
@@ -697,5 +694,6 @@ async def check(interaction: discord.Interaction):
 token = os.getenv("TOKEN")
 if not token:
     raise ValueError("TOKEN not set in .env.")
-
+    
+app.run(host='0.0.0.0', port=8080)
 bot.run(token)
