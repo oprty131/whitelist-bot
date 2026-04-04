@@ -699,6 +699,4 @@ token = os.getenv("TOKEN")
 if not token:
     raise ValueError("TOKEN not set in .env.")
 
-flask_thread = threading.Thread(target=run_flask)
-flask_thread.start()
 bot.run(token)
