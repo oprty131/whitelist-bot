@@ -97,49 +97,8 @@ async def on_ready():
     await bot.tree.sync(guild=discord.Object(id=GUILD_ID))
     await auto_restore_database(bot)
     print(f"Bot is online as {bot.user}")
-    
-VC_CHANNEL = 1302379068217491516
 
-@bot.event
-async def on_message(message):
-    if not message.author.bot and message.channel.id == VC_CHANNEL:
-        if message.author.guild_permissions.administrator:
-            return
-            
-        vc_channel = bot.get_channel(VC_CHANNEL)
-        if isinstance(vc_channel, discord.VoiceChannel):
-            if message.author in vc_channel.members:
-                return
-
-        image_count = sum(
-            1 for a in message.attachments
-            if a.content_type and a.content_type.startswith("image")
-        )
-
-        if image_count >= 4:
-            try:
-                try:
-                    await message.author.send(
-                        "You were temporarily banned because you were suspected as a hacked account. "
-                        "If this was a mistake, you can rejoin here: https://discord.gg/TBO"
-                    )
-                except:
-                    pass
-
-                await message.guild.ban(
-                    message.author,
-                    reason="Hacked account suspected",
-                    delete_message_seconds=600
-                )
-                await asyncio.sleep(1)
-                await message.guild.unban(message.author)
-
-            except:
-                pass
-
-    await bot.process_commands(message)
-
-FLASK_API = "https://peeky.pythonanywhere.com"
+FLASK_API = "https://okei.pythonanywhere.com"
 BOT_SECRET = "robertmike56"
 WHITELIST_ROLES = [1266420174836207717,1458574695401132265]
 
