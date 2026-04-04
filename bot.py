@@ -150,7 +150,7 @@ class KeyPanel(discord.ui.View):
             return
 
         key = data["key"]
-        script = f'getgenv().Key = "{key}"\loadstring(game:HttpGet("https://peeky.helioho.st/script/jjs"))()'
+        script = f'getgenv().Key = "{key}"\nloadstring(game:HttpGet("https://peeky.helioho.st/script/jjs"))()'
         await interaction.response.send_message(f"```lua\n{script}\n```", ephemeral=True)
 
     @discord.ui.button(label="Reset HWID", style=discord.ButtonStyle.red, custom_id="keypanel_reset_hwid")
